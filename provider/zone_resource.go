@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"time"
 
 	client2 "github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -48,9 +47,6 @@ func (r *proxmoxSDNZoneResource) Metadata(_ context.Context, req resource.Metada
 func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"last_updated": schema.StringAttribute{
-				Computed: true,
-			},
 			"zone": schema.StringAttribute{
 				Description: "The ID of the zone",
 				Required:    true,
@@ -62,13 +58,16 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequ
 			"dhcp": schema.StringAttribute{
 				Description: "The DHCP configuration of the zone",
 				Optional:    true,
+				Computed:    true,
 			},
 			"dns": schema.StringAttribute{
 				Description: "The DNS configuration of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"dns_zone": schema.StringAttribute{
 				Description: "The DNS zone of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"digest": schema.StringAttribute{
@@ -77,14 +76,17 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"ipam": schema.StringAttribute{
 				Description: "The IPAM configuration of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"mtu": schema.Int64Attribute{
 				Description: "The MTU of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"nodes": schema.StringAttribute{
 				Description: "The nodes of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"pending": schema.BoolAttribute{
@@ -93,6 +95,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"reverse_dns": schema.StringAttribute{
 				Description: "The reverse DNS configuration of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"state": schema.StringAttribute{
@@ -101,62 +104,76 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"advertise_subnets": schema.BoolAttribute{
 				Description: "The advertise subnets status of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"bridge": schema.StringAttribute{
 				Description: "The bridge of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"bridge_disable_mac_learning": schema.BoolAttribute{
 				Description: "The bridge disable MAC learning status of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"controller": schema.StringAttribute{
 				Description: "The controller of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"disable_arp_discovery": schema.BoolAttribute{
 				Description: "The disable ARP discovery status of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"dp_id": schema.Int64Attribute{
 				Description: "The DP ID of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"exit_nodes": schema.StringAttribute{
 				Description: "The exit nodes of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"exit_nodes_local_routing": schema.BoolAttribute{
 				Description: "The exit nodes local routing status of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"mac": schema.StringAttribute{
 				Description: "The MAC of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"peers": schema.StringAttribute{
 				Description: "The peers of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"route_target_import": schema.StringAttribute{
 				Description: "The route target import of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			// "tag": schema.Int64Attribute{
 			// 	Description: "The tag of the zone",
-			// 	Computed:    true,
+			// 	Optional:    true,
 			// },
 			"vlan_protocol": schema.StringAttribute{
 				Description: "The VLAN protocol of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"vrf_vxlan": schema.Int64Attribute{
 				Description: "The VRF VXLAN of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 			"vxlan_port": schema.Int64Attribute{
 				Description: "The VXLAN port of the zone",
+				Optional:    true,
 				Computed:    true,
 			},
 		},
@@ -164,7 +181,6 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequ
 }
 
 type proxmoxSDNZoneResourceModel struct {
-	LastUpdated              types.String `tfsdk:"last_updated"`
 	Zone                     types.String `tfsdk:"zone"`
 	Type                     types.String `tfsdk:"type"`
 	DHCP                     types.String `tfsdk:"dhcp"`
@@ -308,9 +324,6 @@ func (r *proxmoxSDNZoneResource) Create(ctx context.Context, req resource.Create
 	plan.VRFVXLAN = types.Int64Value(int64(createdZone.VRFVXLAN))
 	plan.VXLANPort = types.Int64Value(int64(createdZone.VXLANPort))
 
-	//last_updatedに現在時刻を設定
-	plan.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
-
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -340,9 +353,6 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 	state.Pending = types.BoolValue(zone.Pending)
 	state.State = types.StringValue(zone.State)
 
-	//last_updatedに現在時刻を設定
-	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
-
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -352,77 +362,6 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *proxmoxSDNZoneResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// リソースを取得 -> 該当リソースをUpdateSDNZoneで更新 -> 更新後のリソースを取得 -> リソースを更新
-	var state proxmoxSDNZoneResourceModel
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	zone := client2.SDNZone{
-		Zone: state.Zone.ValueString(),
-		Type: state.Type.ValueString(),
-	}
-
-	setStringIfNotNull(&zone.DHCP, state.DHCP)
-	setStringIfNotNull(&zone.DNS, state.DNS)
-	setStringIfNotNull(&zone.DNSZone, state.DNSZone)
-	setStringIfNotNull(&zone.Digest, state.Digest)
-	setStringIfNotNull(&zone.IPAM, state.IPAM)
-	setIntIfNotNull(&zone.MTU, state.MTU)
-	setStringIfNotNull(&zone.Nodes, state.Nodes)
-	setBoolIfNotNull(&zone.Pending, state.Pending)
-	setStringIfNotNull(&zone.ReverseDNS, state.ReverseDNS)
-	setStringIfNotNull(&zone.State, state.State)
-	setBoolIfNotNull(&zone.AdvertiseSubnets, state.AdvertiseSubnets)
-	setStringIfNotNull(&zone.Bridge, state.Bridge)
-	setBoolIfNotNull(&zone.BridgeDisableMACLearning, state.BridgeDisableMACLearning)
-	setStringIfNotNull(&zone.Controller, state.Controller)
-	setBoolIfNotNull(&zone.DisableARPDiscovery, state.DisableARPDiscovery)
-	setIntIfNotNull(&zone.DPID, state.DPID)
-	setStringIfNotNull(&zone.ExitNodes, state.ExitNodes)
-	setBoolIfNotNull(&zone.ExitNodesLocalRouting, state.ExitNodesLocalRouting)
-	setStringIfNotNull(&zone.MAC, state.MAC)
-	setStringIfNotNull(&zone.Peers, state.Peers)
-	setStringIfNotNull(&zone.RouteTargetImport, state.RouteTargetImport)
-	// if !state.Tag.IsNull() {
-	// 	tag := int(state.Tag.ValueInt64())
-	// 	zone.Tag = &tag
-	// }
-	setStringIfNotNull(&zone.VLANProtocol, state.VLANProtocol)
-	setIntIfNotNull(&zone.VRFVXLAN, state.VRFVXLAN)
-	setIntIfNotNull(&zone.VXLANPort, state.VXLANPort)
-
-	//last_updatedに現在時刻を設定
-	state.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
-	err := r.client.UpdateSDNZone(zone)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update SDN zone",
-			err.Error(),
-		)
-		return
-	}
-
-	updatedZone, err := r.client.GetSDNZone(zone.Zone)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to get updated SDN zone",
-			err.Error(),
-		)
-		return
-	}
-
-	state.Digest = types.StringValue(updatedZone.Digest)
-	state.Pending = types.BoolValue(updatedZone.Pending)
-	state.State = types.StringValue(updatedZone.State)
-
-	diags = resp.State.Set(ctx, state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
