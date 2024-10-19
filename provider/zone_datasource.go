@@ -160,7 +160,7 @@ func (d *proxmoxSDNZoneDataSource) Configure(_ context.Context, req datasource.C
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprint("Expected *client2.Client, got %T", req.ProviderData),
+			fmt.Sprintf("Expected *client2.Client, got %T", req.ProviderData),
 		)
 		return
 	}
@@ -168,34 +168,54 @@ func (d *proxmoxSDNZoneDataSource) Configure(_ context.Context, req datasource.C
 }
 
 func convertSDNZoneToZonesModel(zone client2.SDNZone) zonesModel {
+	derefString := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return *s
+	}
+
+	derefInt := func(i *int) int {
+		if i == nil {
+			return 0
+		}
+		return *i
+	}
+
+	derefBool := func(b *bool) bool {
+		if b == nil {
+			return false
+		}
+		return *b
+	}
 	zoneState := zonesModel{
 		Zone:                     types.StringValue(zone.Zone),
 		Type:                     types.StringValue(zone.Type),
-		DHCP:                     types.StringValue(zone.DHCP),
-		DNS:                      types.StringValue(zone.DNS),
-		DNSZone:                  types.StringValue(zone.DNSZone),
-		Digest:                   types.StringValue(zone.Digest),
-		IPAM:                     types.StringValue(zone.IPAM),
-		MTU:                      types.Int64Value(int64(zone.MTU)),
-		Nodes:                    types.StringValue(zone.Nodes),
-		Pending:                  types.BoolValue(zone.Pending),
-		ReverseDNS:               types.StringValue(zone.ReverseDNS),
-		State:                    types.StringValue(zone.State),
-		AdvertiseSubnets:         types.BoolValue(zone.AdvertiseSubnets),
-		Bridge:                   types.StringValue(zone.Bridge),
-		BridgeDisableMACLearning: types.BoolValue(zone.BridgeDisableMACLearning),
-		Controller:               types.StringValue(zone.Controller),
-		DisableARPDiscovery:      types.BoolValue(zone.DisableARPDiscovery),
-		DPID:                     types.Int64Value(int64(zone.DPID)),
-		ExitNodes:                types.StringValue(zone.ExitNodes),
-		ExitNodesLocalRouting:    types.BoolValue(zone.ExitNodesLocalRouting),
-		MAC:                      types.StringValue(zone.MAC),
-		Peers:                    types.StringValue(zone.Peers),
-		RouteTargetImport:        types.StringValue(zone.RouteTargetImport),
+		DHCP:                     types.StringValue(derefString(zone.DHCP)),
+		DNS:                      types.StringValue(derefString(zone.DNS)),
+		DNSZone:                  types.StringValue(derefString(zone.DNSZone)),
+		Digest:                   types.StringValue(derefString(zone.Digest)),
+		IPAM:                     types.StringValue(derefString(zone.IPAM)),
+		MTU:                      types.Int64Value(int64(derefInt(zone.MTU))),
+		Nodes:                    types.StringValue(derefString(zone.Nodes)),
+		Pending:                  types.BoolValue(derefBool(zone.Pending)),
+		ReverseDNS:               types.StringValue(derefString(zone.ReverseDNS)),
+		State:                    types.StringValue(derefString(zone.State)),
+		AdvertiseSubnets:         types.BoolValue(derefBool(zone.AdvertiseSubnets)),
+		Bridge:                   types.StringValue(derefString(zone.Bridge)),
+		BridgeDisableMACLearning: types.BoolValue(derefBool(zone.BridgeDisableMACLearning)),
+		Controller:               types.StringValue(derefString(zone.Controller)),
+		DisableARPDiscovery:      types.BoolValue(derefBool(zone.DisableARPDiscovery)),
+		DPID:                     types.Int64Value(int64(derefInt(zone.DPID))),
+		ExitNodes:                types.StringValue(derefString(zone.ExitNodes)),
+		ExitNodesLocalRouting:    types.BoolValue(derefBool(zone.ExitNodesLocalRouting)),
+		MAC:                      types.StringValue(derefString(zone.MAC)),
+		Peers:                    types.StringValue(derefString(zone.Peers)),
+		RouteTargetImport:        types.StringValue(derefString(zone.RouteTargetImport)),
 		// Tag:                      types.Int64Null(),
-		VLANProtocol: types.StringValue(zone.VLANProtocol),
-		VRFVXLAN:     types.Int64Value(int64(zone.VRFVXLAN)),
-		VXLANPort:    types.Int64Value(int64(zone.VXLANPort)),
+		VLANProtocol: types.StringValue(derefString(zone.VLANProtocol)),
+		VRFVXLAN:     types.Int64Value(int64(derefInt(zone.VRFVXLAN))),
+		VXLANPort:    types.Int64Value(int64(derefInt(zone.VXLANPort))),
 	}
 
 	// if zone.Tag != nil {
