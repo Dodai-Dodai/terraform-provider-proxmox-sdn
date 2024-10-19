@@ -296,134 +296,55 @@ func (r *proxmoxSDNZoneResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// 全ての属性をplanに設定
+	// ヘルパー関数を定義
+	derefString := func(s *string) types.String {
+		if s == nil {
+			return types.StringNull()
+		}
+		return types.StringValue(*s)
+	}
+
+	derefInt := func(i *int) types.Int64 {
+		if i == nil {
+			return types.Int64Null()
+		}
+		return types.Int64Value(int64(*i))
+	}
+
+	derefBool := func(b *bool) types.Bool {
+		if b == nil {
+			return types.BoolNull()
+		}
+		return types.BoolValue(*b)
+	}
+
+	// planにすべての属性を設定
 	plan.Zone = types.StringValue(createdZone.Zone)
 	plan.Type = types.StringValue(createdZone.Type)
-	if createdZone.DHCP != nil {
-		plan.DHCP = types.StringValue(*createdZone.DHCP)
-	} else {
-		plan.DHCP = types.StringNull()
-	}
-	if createdZone.DNS != nil {
-		plan.DNS = types.StringValue(*createdZone.DNS)
-	} else {
-		plan.DNS = types.StringNull()
-	}
-	if createdZone.DNSZone != nil {
-		plan.DNSZone = types.StringValue(*createdZone.DNSZone)
-	} else {
-		plan.DNSZone = types.StringNull()
-	}
-	if createdZone.Digest != nil {
-		plan.Digest = types.StringValue(*createdZone.Digest)
-	} else {
-		plan.Digest = types.StringNull()
-	}
-	if createdZone.IPAM != nil {
-		plan.IPAM = types.StringValue(*createdZone.IPAM)
-	} else {
-		plan.IPAM = types.StringNull()
-	}
-	if createdZone.MTU != nil {
-		plan.MTU = types.Int64Value(int64(*createdZone.MTU))
-	} else {
-		plan.MTU = types.Int64Null()
-	}
-	if createdZone.Nodes != nil {
-		plan.Nodes = types.StringValue(*createdZone.Nodes)
-	} else {
-		plan.Nodes = types.StringNull()
-	}
-	if createdZone.Pending != nil {
-		plan.Pending = types.BoolValue(*createdZone.Pending)
-	} else {
-		plan.Pending = types.BoolNull()
-	}
-	if createdZone.ReverseDNS != nil {
-		plan.ReverseDNS = types.StringValue(*createdZone.ReverseDNS)
-	} else {
-		plan.ReverseDNS = types.StringNull()
-	}
-	if createdZone.State != nil {
-		plan.State = types.StringValue(*createdZone.State)
-	} else {
-		plan.State = types.StringNull()
-	}
-	if createdZone.AdvertiseSubnets != nil {
-		plan.AdvertiseSubnets = types.BoolValue(*createdZone.AdvertiseSubnets)
-	} else {
-		plan.AdvertiseSubnets = types.BoolNull()
-	}
-	if createdZone.Bridge != nil {
-		plan.Bridge = types.StringValue(*createdZone.Bridge)
-	} else {
-		plan.Bridge = types.StringNull()
-	}
-	if createdZone.BridgeDisableMACLearning != nil {
-		plan.BridgeDisableMACLearning = types.BoolValue(*createdZone.BridgeDisableMACLearning)
-	} else {
-		plan.BridgeDisableMACLearning = types.BoolNull()
-	}
-	if createdZone.Controller != nil {
-		plan.Controller = types.StringValue(*createdZone.Controller)
-	} else {
-		plan.Controller = types.StringNull()
-	}
-	if createdZone.DisableARPDiscovery != nil {
-		plan.DisableARPDiscovery = types.BoolValue(*createdZone.DisableARPDiscovery)
-	} else {
-		plan.DisableARPDiscovery = types.BoolNull()
-	}
-	if createdZone.DPID != nil {
-		plan.DPID = types.Int64Value(int64(*createdZone.DPID))
-	} else {
-		plan.DPID = types.Int64Null()
-	}
-	if createdZone.ExitNodes != nil {
-		plan.ExitNodes = types.StringValue(*createdZone.ExitNodes)
-	} else {
-		plan.ExitNodes = types.StringNull()
-	}
-	if createdZone.ExitNodesLocalRouting != nil {
-		plan.ExitNodesLocalRouting = types.BoolValue(*createdZone.ExitNodesLocalRouting)
-	} else {
-		plan.ExitNodesLocalRouting = types.BoolNull()
-	}
-	if createdZone.MAC != nil {
-		plan.MAC = types.StringValue(*createdZone.MAC)
-	} else {
-		plan.MAC = types.StringNull()
-	}
-	if createdZone.Peers != nil {
-		plan.Peers = types.StringValue(*createdZone.Peers)
-	} else {
-		plan.Peers = types.StringNull()
-	}
-	if createdZone.RouteTargetImport != nil {
-		plan.RouteTargetImport = types.StringValue(*createdZone.RouteTargetImport)
-	} else {
-		plan.RouteTargetImport = types.StringNull()
-	}
-	// if createdZone.Tag != nil {
-	// 	plan.Tag = types.Int64Value(int64(*createdZone.Tag))
-	// } else {
-	// 	plan.Tag = types.Int64Null()
-	// }
-	if createdZone.VLANProtocol != nil {
-		plan.VLANProtocol = types.StringValue(*createdZone.VLANProtocol)
-	} else {
-		plan.VLANProtocol = types.StringNull()
-	}
-	if createdZone.VRFVXLAN != nil {
-		plan.VRFVXLAN = types.Int64Value(int64(*createdZone.VRFVXLAN))
-	} else {
-		plan.VRFVXLAN = types.Int64Null()
-	}
-	if createdZone.VXLANPort != nil {
-		plan.VXLANPort = types.Int64Value(int64(*createdZone.VXLANPort))
-	} else {
-		plan.VXLANPort = types.Int64Null()
-	}
+	plan.DHCP = derefString(createdZone.DHCP)
+	plan.DNS = derefString(createdZone.DNS)
+	plan.DNSZone = derefString(createdZone.DNSZone)
+	plan.Digest = derefString(createdZone.Digest)
+	plan.IPAM = derefString(createdZone.IPAM)
+	plan.MTU = derefInt(createdZone.MTU)
+	plan.Nodes = derefString(createdZone.Nodes)
+	plan.Pending = derefBool(createdZone.Pending)
+	plan.ReverseDNS = derefString(createdZone.ReverseDNS)
+	plan.State = derefString(createdZone.State)
+	plan.AdvertiseSubnets = derefBool(createdZone.AdvertiseSubnets)
+	plan.Bridge = derefString(createdZone.Bridge)
+	plan.BridgeDisableMACLearning = derefBool(createdZone.BridgeDisableMACLearning)
+	plan.Controller = derefString(createdZone.Controller)
+	plan.DisableARPDiscovery = derefBool(createdZone.DisableARPDiscovery)
+	plan.DPID = derefInt(createdZone.DPID)
+	plan.ExitNodes = derefString(createdZone.ExitNodes)
+	plan.ExitNodesLocalRouting = derefBool(createdZone.ExitNodesLocalRouting)
+	plan.MAC = derefString(createdZone.MAC)
+	plan.Peers = derefString(createdZone.Peers)
+	plan.RouteTargetImport = derefString(createdZone.RouteTargetImport)
+	plan.VLANProtocol = derefString(createdZone.VLANProtocol)
+	plan.VRFVXLAN = derefInt(createdZone.VRFVXLAN)
+	plan.VXLANPort = derefInt(createdZone.VXLANPort)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -450,21 +371,54 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	if zone.Digest != nil {
-		state.Digest = types.StringValue(*zone.Digest)
-	} else {
-		state.Digest = types.StringNull()
+	// helper functions
+	derefString := func(s *string) types.String {
+		if s == nil {
+			return types.StringNull()
+		}
+		return types.StringValue(*s)
 	}
-	if zone.Pending != nil {
-		state.Pending = types.BoolValue(*zone.Pending)
-	} else {
-		state.Pending = types.BoolNull()
+
+	derefInt := func(i *int) types.Int64 {
+		if i == nil {
+			return types.Int64Null()
+		}
+		return types.Int64Value(int64(*i))
 	}
-	if zone.State != nil {
-		state.State = types.StringValue(*zone.State)
-	} else {
-		state.State = types.StringNull()
+
+	derefBool := func(b *bool) types.Bool {
+		if b == nil {
+			return types.BoolNull()
+		}
+		return types.BoolValue(*b)
 	}
+
+	state.Zone = types.StringValue(zone.Zone)
+	state.Type = types.StringValue(zone.Type)
+	state.DHCP = derefString(zone.DHCP)
+	state.DNS = derefString(zone.DNS)
+	state.DNSZone = derefString(zone.DNSZone)
+	state.Digest = derefString(zone.Digest)
+	state.IPAM = derefString(zone.IPAM)
+	state.MTU = derefInt(zone.MTU)
+	state.Nodes = derefString(zone.Nodes)
+	state.Pending = derefBool(zone.Pending)
+	state.ReverseDNS = derefString(zone.ReverseDNS)
+	state.State = derefString(zone.State)
+	state.AdvertiseSubnets = derefBool(zone.AdvertiseSubnets)
+	state.Bridge = derefString(zone.Bridge)
+	state.BridgeDisableMACLearning = derefBool(zone.BridgeDisableMACLearning)
+	state.Controller = derefString(zone.Controller)
+	state.DisableARPDiscovery = derefBool(zone.DisableARPDiscovery)
+	state.DPID = derefInt(zone.DPID)
+	state.ExitNodes = derefString(zone.ExitNodes)
+	state.ExitNodesLocalRouting = derefBool(zone.ExitNodesLocalRouting)
+	state.MAC = derefString(zone.MAC)
+	state.Peers = derefString(zone.Peers)
+	state.RouteTargetImport = derefString(zone.RouteTargetImport)
+	state.VLANProtocol = derefString(zone.VLANProtocol)
+	state.VRFVXLAN = derefInt(zone.VRFVXLAN)
+	state.VXLANPort = derefInt(zone.VXLANPort)
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
