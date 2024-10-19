@@ -213,23 +213,26 @@ type proxmoxSDNZoneResourceModel struct {
 // ヘルパー関数の定義
 
 // String型のマッピング
-func setStringIfNotNull(dest *string, src types.String) {
+func setStringIfNotNull(dest **string, src types.String) {
 	if !src.IsNull() {
-		*dest = src.ValueString()
+		value := src.ValueString()
+		*dest = &value
 	}
 }
 
 // Int64型のマッピング
-func setIntIfNotNull(dest *int, src types.Int64) {
+func setIntIfNotNull(dest **int, src types.Int64) {
 	if !src.IsNull() {
-		*dest = int(src.ValueInt64())
+		value := int(src.ValueInt64())
+		*dest = &value
 	}
 }
 
 // Bool型のマッピング
-func setBoolIfNotNull(dest *bool, src types.Bool) {
+func setBoolIfNotNull(dest **bool, src types.Bool) {
 	if !src.IsNull() {
-		*dest = src.ValueBool()
+		value := src.ValueBool()
+		*dest = &value
 	}
 }
 
@@ -296,33 +299,131 @@ func (r *proxmoxSDNZoneResource) Create(ctx context.Context, req resource.Create
 	// 全ての属性をplanに設定
 	plan.Zone = types.StringValue(createdZone.Zone)
 	plan.Type = types.StringValue(createdZone.Type)
-	plan.DHCP = types.StringValue(createdZone.DHCP)
-	plan.DNS = types.StringValue(createdZone.DNS)
-	plan.DNSZone = types.StringValue(createdZone.DNSZone)
-	plan.Digest = types.StringValue(createdZone.Digest)
-	plan.IPAM = types.StringValue(createdZone.IPAM)
-	plan.MTU = types.Int64Value(int64(createdZone.MTU))
-	plan.Nodes = types.StringValue(createdZone.Nodes)
-	plan.Pending = types.BoolValue(createdZone.Pending)
-	plan.ReverseDNS = types.StringValue(createdZone.ReverseDNS)
-	plan.State = types.StringValue(createdZone.State)
-	plan.AdvertiseSubnets = types.BoolValue(createdZone.AdvertiseSubnets)
-	plan.Bridge = types.StringValue(createdZone.Bridge)
-	plan.BridgeDisableMACLearning = types.BoolValue(createdZone.BridgeDisableMACLearning)
-	plan.Controller = types.StringValue(createdZone.Controller)
-	plan.DisableARPDiscovery = types.BoolValue(createdZone.DisableARPDiscovery)
-	plan.DPID = types.Int64Value(int64(createdZone.DPID))
-	plan.ExitNodes = types.StringValue(createdZone.ExitNodes)
-	plan.ExitNodesLocalRouting = types.BoolValue(createdZone.ExitNodesLocalRouting)
-	plan.MAC = types.StringValue(createdZone.MAC)
-	plan.Peers = types.StringValue(createdZone.Peers)
-	plan.RouteTargetImport = types.StringValue(createdZone.RouteTargetImport)
+	if createdZone.DHCP != nil {
+		plan.DHCP = types.StringValue(*createdZone.DHCP)
+	} else {
+		plan.DHCP = types.StringNull()
+	}
+	if createdZone.DNS != nil {
+		plan.DNS = types.StringValue(*createdZone.DNS)
+	} else {
+		plan.DNS = types.StringNull()
+	}
+	if createdZone.DNSZone != nil {
+		plan.DNSZone = types.StringValue(*createdZone.DNSZone)
+	} else {
+		plan.DNSZone = types.StringNull()
+	}
+	if createdZone.Digest != nil {
+		plan.Digest = types.StringValue(*createdZone.Digest)
+	} else {
+		plan.Digest = types.StringNull()
+	}
+	if createdZone.IPAM != nil {
+		plan.IPAM = types.StringValue(*createdZone.IPAM)
+	} else {
+		plan.IPAM = types.StringNull()
+	}
+	if createdZone.MTU != nil {
+		plan.MTU = types.Int64Value(int64(*createdZone.MTU))
+	} else {
+		plan.MTU = types.Int64Null()
+	}
+	if createdZone.Nodes != nil {
+		plan.Nodes = types.StringValue(*createdZone.Nodes)
+	} else {
+		plan.Nodes = types.StringNull()
+	}
+	if createdZone.Pending != nil {
+		plan.Pending = types.BoolValue(*createdZone.Pending)
+	} else {
+		plan.Pending = types.BoolNull()
+	}
+	if createdZone.ReverseDNS != nil {
+		plan.ReverseDNS = types.StringValue(*createdZone.ReverseDNS)
+	} else {
+		plan.ReverseDNS = types.StringNull()
+	}
+	if createdZone.State != nil {
+		plan.State = types.StringValue(*createdZone.State)
+	} else {
+		plan.State = types.StringNull()
+	}
+	if createdZone.AdvertiseSubnets != nil {
+		plan.AdvertiseSubnets = types.BoolValue(*createdZone.AdvertiseSubnets)
+	} else {
+		plan.AdvertiseSubnets = types.BoolNull()
+	}
+	if createdZone.Bridge != nil {
+		plan.Bridge = types.StringValue(*createdZone.Bridge)
+	} else {
+		plan.Bridge = types.StringNull()
+	}
+	if createdZone.BridgeDisableMACLearning != nil {
+		plan.BridgeDisableMACLearning = types.BoolValue(*createdZone.BridgeDisableMACLearning)
+	} else {
+		plan.BridgeDisableMACLearning = types.BoolNull()
+	}
+	if createdZone.Controller != nil {
+		plan.Controller = types.StringValue(*createdZone.Controller)
+	} else {
+		plan.Controller = types.StringNull()
+	}
+	if createdZone.DisableARPDiscovery != nil {
+		plan.DisableARPDiscovery = types.BoolValue(*createdZone.DisableARPDiscovery)
+	} else {
+		plan.DisableARPDiscovery = types.BoolNull()
+	}
+	if createdZone.DPID != nil {
+		plan.DPID = types.Int64Value(int64(*createdZone.DPID))
+	} else {
+		plan.DPID = types.Int64Null()
+	}
+	if createdZone.ExitNodes != nil {
+		plan.ExitNodes = types.StringValue(*createdZone.ExitNodes)
+	} else {
+		plan.ExitNodes = types.StringNull()
+	}
+	if createdZone.ExitNodesLocalRouting != nil {
+		plan.ExitNodesLocalRouting = types.BoolValue(*createdZone.ExitNodesLocalRouting)
+	} else {
+		plan.ExitNodesLocalRouting = types.BoolNull()
+	}
+	if createdZone.MAC != nil {
+		plan.MAC = types.StringValue(*createdZone.MAC)
+	} else {
+		plan.MAC = types.StringNull()
+	}
+	if createdZone.Peers != nil {
+		plan.Peers = types.StringValue(*createdZone.Peers)
+	} else {
+		plan.Peers = types.StringNull()
+	}
+	if createdZone.RouteTargetImport != nil {
+		plan.RouteTargetImport = types.StringValue(*createdZone.RouteTargetImport)
+	} else {
+		plan.RouteTargetImport = types.StringNull()
+	}
 	// if createdZone.Tag != nil {
 	// 	plan.Tag = types.Int64Value(int64(*createdZone.Tag))
+	// } else {
+	// 	plan.Tag = types.Int64Null()
 	// }
-	plan.VLANProtocol = types.StringValue(createdZone.VLANProtocol)
-	plan.VRFVXLAN = types.Int64Value(int64(createdZone.VRFVXLAN))
-	plan.VXLANPort = types.Int64Value(int64(createdZone.VXLANPort))
+	if createdZone.VLANProtocol != nil {
+		plan.VLANProtocol = types.StringValue(*createdZone.VLANProtocol)
+	} else {
+		plan.VLANProtocol = types.StringNull()
+	}
+	if createdZone.VRFVXLAN != nil {
+		plan.VRFVXLAN = types.Int64Value(int64(*createdZone.VRFVXLAN))
+	} else {
+		plan.VRFVXLAN = types.Int64Null()
+	}
+	if createdZone.VXLANPort != nil {
+		plan.VXLANPort = types.Int64Value(int64(*createdZone.VXLANPort))
+	} else {
+		plan.VXLANPort = types.Int64Null()
+	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -349,9 +450,21 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	state.Digest = types.StringValue(zone.Digest)
-	state.Pending = types.BoolValue(zone.Pending)
-	state.State = types.StringValue(zone.State)
+	if zone.Digest != nil {
+		state.Digest = types.StringValue(*zone.Digest)
+	} else {
+		state.Digest = types.StringNull()
+	}
+	if zone.Pending != nil {
+		state.Pending = types.BoolValue(*zone.Pending)
+	} else {
+		state.Pending = types.BoolNull()
+	}
+	if zone.State != nil {
+		state.State = types.StringValue(*zone.State)
+	} else {
+		state.State = types.StringNull()
+	}
 
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
