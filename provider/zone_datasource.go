@@ -175,7 +175,7 @@ func convertSDNZoneToZonesModel(zone client2.SDNZone) zonesModel {
 		return *s
 	}
 
-	derefInt := func(i *int) int {
+	derefInt := func(i *int64) int64 {
 		if i == nil {
 			return 0
 		}
