@@ -221,9 +221,9 @@ func setStringIfNotNull(dest **string, src types.String) {
 }
 
 // Int64型のマッピング
-func setIntIfNotNull(dest **int, src types.Int64) {
+func setIntIfNotNull(dest **int64, src types.Int64) {
 	if !src.IsNull() {
-		value := int(src.ValueInt64())
+		value := src.ValueInt64()
 		*dest = &value
 	}
 }
@@ -304,7 +304,7 @@ func (r *proxmoxSDNZoneResource) Create(ctx context.Context, req resource.Create
 		return types.StringValue(*s)
 	}
 
-	derefInt := func(i *int) types.Int64 {
+	derefInt := func(i *int64) types.Int64 {
 		if i == nil {
 			return types.Int64Null()
 		}
@@ -379,7 +379,7 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 		return types.StringValue(*s)
 	}
 
-	derefInt := func(i *int) types.Int64 {
+	derefInt := func(i *int64) types.Int64 {
 		if i == nil {
 			return types.Int64Null()
 		}
@@ -429,8 +429,138 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *proxmoxSDNZoneResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan proxmoxSDNZoneResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	zone := client2.SDNZone{
+		Zone: plan.Zone.ValueString(),
+		Type: plan.Type.ValueString(),
+	}
+
+	setStringIfNotNull(&zone.DHCP, plan.DHCP)
+	setStringIfNotNull(&zone.DNS, plan.DNS)
+	setStringIfNotNull(&zone.DNSZone, plan.DNSZone)
+	setStringIfNotNull(&zone.Digest, plan.Digest)
+	setStringIfNotNull(&zone.IPAM, plan.IPAM)
+	setIntIfNotNull(&zone.MTU, plan.MTU)
+	setStringIfNotNull(&zone.Nodes, plan.Nodes)
+	setBoolIfNotNull(&zone.Pending, plan.Pending)
+	setStringIfNotNull(&zone.ReverseDNS, plan.ReverseDNS)
+	setStringIfNotNull(&zone.State, plan.State)
+	setBoolIfNotNull(&zone.AdvertiseSubnets, plan.AdvertiseSubnets)
+	setStringIfNotNull(&zone.Bridge, plan.Bridge)
+	setBoolIfNotNull(&zone.BridgeDisableMACLearning, plan.BridgeDisableMACLearning)
+	setStringIfNotNull(&zone.Controller, plan.Controller)
+	setBoolIfNotNull(&zone.DisableARPDiscovery, plan.DisableARPDiscovery)
+	setIntIfNotNull(&zone.DPID, plan.DPID)
+	setStringIfNotNull(&zone.ExitNodes, plan.ExitNodes)
+	setBoolIfNotNull(&zone.ExitNodesLocalRouting, plan.ExitNodesLocalRouting)
+	setStringIfNotNull(&zone.MAC, plan.MAC)
+	setStringIfNotNull(&zone.Peers, plan.Peers)
+	setStringIfNotNull(&zone.RouteTargetImport, plan.RouteTargetImport)
+	// if !plan.Tag.IsNull() {
+	// 	tag := int(plan.Tag.ValueInt64())
+	// 	zone.Tag = &tag
+	// }
+	setStringIfNotNull(&zone.VLANProtocol, plan.VLANProtocol)
+	setIntIfNotNull(&zone.VRFVXLAN, plan.VRFVXLAN)
+	setIntIfNotNull(&zone.VXLANPort, plan.VXLANPort)
+
+	err := r.client.UpdateSDNZone(zone)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update SDN zone",
+			err.Error(),
+		)
+		return
+	}
+
+	updatedZone, err := r.client.GetSDNZone(zone.Zone)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to get updated SDN zone",
+			err.Error(),
+		)
+		return
+	}
+
+	// helper functions
+	derefString := func(s *string) types.String {
+		if s == nil {
+			return types.StringNull()
+		}
+		return types.StringValue(*s)
+	}
+
+	derefInt := func(i *int64) types.Int64 {
+		if i == nil {
+			return types.Int64Null()
+		}
+		return types.Int64Value(int64(*i))
+	}
+
+	derefBool := func(b *bool) types.Bool {
+		if b == nil {
+			return types.BoolNull()
+		}
+		return types.BoolValue(*b)
+	}
+
+	// planにすべての属性を設定
+	plan.Zone = types.StringValue(updatedZone.Zone)
+	plan.Type = types.StringValue(updatedZone.Type)
+	plan.DHCP = derefString(updatedZone.DHCP)
+	plan.DNS = derefString(updatedZone.DNS)
+	plan.DNSZone = derefString(updatedZone.DNSZone)
+	plan.Digest = derefString(updatedZone.Digest)
+	plan.IPAM = derefString(updatedZone.IPAM)
+	plan.MTU = derefInt(updatedZone.MTU)
+	plan.Nodes = derefString(updatedZone.Nodes)
+	plan.Pending = derefBool(updatedZone.Pending)
+	plan.ReverseDNS = derefString(updatedZone.ReverseDNS)
+	plan.State = derefString(updatedZone.State)
+	plan.AdvertiseSubnets = derefBool(updatedZone.AdvertiseSubnets)
+	plan.Bridge = derefString(updatedZone.Bridge)
+	plan.BridgeDisableMACLearning = derefBool(updatedZone.BridgeDisableMACLearning)
+	plan.Controller = derefString(updatedZone.Controller)
+	plan.DisableARPDiscovery = derefBool(updatedZone.DisableARPDiscovery)
+	plan.DPID = derefInt(updatedZone.DPID)
+	plan.ExitNodes = derefString(updatedZone.ExitNodes)
+	plan.ExitNodesLocalRouting = derefBool(updatedZone.ExitNodesLocalRouting)
+	plan.MAC = derefString(updatedZone.MAC)
+	plan.Peers = derefString(updatedZone.Peers)
+	plan.RouteTargetImport = derefString(updatedZone.RouteTargetImport)
+	plan.VLANProtocol = derefString(updatedZone.VLANProtocol)
+	plan.VRFVXLAN = derefInt(updatedZone.VRFVXLAN)
+	plan.VXLANPort = derefInt(updatedZone.VXLANPort)
+
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *proxmoxSDNZoneResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state proxmoxSDNZoneResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := r.client.DeleteSDNZone(state.Zone.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to delete SDN zone",
+			err.Error(),
+		)
+		return
+	}
+
 }

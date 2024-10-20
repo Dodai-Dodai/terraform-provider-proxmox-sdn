@@ -14,7 +14,7 @@ type SDNZone struct {
 	DNSZone                  *string `json:"dnszone,omitempty"`
 	Digest                   *string `json:"digest,omitempty"`
 	IPAM                     *string `json:"ipam,omitempty"`
-	MTU                      *int    `json:"mtu,omitempty"`
+	MTU                      *int64  `json:"mtu,omitempty"`
 	Nodes                    *string `json:"nodes,omitempty"`
 	Pending                  *bool   `json:"pending,omitempty"`
 	ReverseDNS               *string `json:"reversedns,omitempty"`
@@ -24,7 +24,7 @@ type SDNZone struct {
 	BridgeDisableMACLearning *bool   `json:"bridge_disable_mac_learning,omitempty"`
 	Controller               *string `json:"controller,omitempty"`
 	DisableARPDiscovery      *bool   `json:"disable_arp_discovery,omitempty"`
-	DPID                     *int    `json:"dp_id,omitempty"`
+	DPID                     *int64  `json:"dp_id,omitempty"`
 	ExitNodes                *string `json:"exitnodes,omitempty"`
 	ExitNodesLocalRouting    *bool   `json:"exitnodes_local_routing,omitempty"`
 	MAC                      *string `json:"mac,omitempty"`
@@ -32,8 +32,8 @@ type SDNZone struct {
 	RouteTargetImport        *string `json:"rt_import,omitempty"`
 	//	Tag                      *int   `json:"tag,omitempty"`
 	VLANProtocol *string `json:"vlan_protocol,omitempty"`
-	VRFVXLAN     *int    `json:"vrf_vxlan,omitempty"`
-	VXLANPort    *int    `json:"vxlan_port,omitempty"`
+	VRFVXLAN     *int64  `json:"vrf_vxlan,omitempty"`
+	VXLANPort    *int64  `json:"vxlan_port,omitempty"`
 }
 
 // CreateSDNZone creates a new SDN zone in Proxmox.
