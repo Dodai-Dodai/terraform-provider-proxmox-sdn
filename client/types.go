@@ -1,24 +1,4 @@
-package main
-
-import (
-	"fmt"
-
-	"encoding/json"
-)
-
-type TagType int
-
-func (t *TagType) UnmarshalJSON(data []byte) error {
-	var value int
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	if value < 0 || value > 4096 {
-		return fmt.Errorf("invalid tag value: %d", value)
-	}
-	*t = TagType(value)
-	return nil
-}
+package client
 
 type SDNZone struct {
 	Zone       string   `json:"zone"`
