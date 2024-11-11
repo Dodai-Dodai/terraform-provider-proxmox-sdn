@@ -135,7 +135,7 @@ func (c *SSHProxmoxClient) GetSDNZones() ([]SDNZone, error) {
 			Type: d["type"].(string),
 		}
 		if mtu, ok := d["mtu"].(float64); ok {
-			mtuInt := int(mtu)
+			mtuInt := int64(mtu)
 			zone.MTU = &mtuInt
 		}
 		if nodes, ok := d["nodes"].(string); ok {
@@ -173,7 +173,7 @@ func (c *SSHProxmoxClient) GetSDNZones() ([]SDNZone, error) {
 				config.Bridge = bridge
 			}
 			if tag, ok := (d["tag"]).(float64); ok {
-				config.Tag = int(tag)
+				config.Tag = int64(tag)
 			}
 			if vlanProtocol, ok := (d["vlan_protocol"]).(string); ok {
 				config.VLANProtocol = &vlanProtocol
@@ -191,7 +191,7 @@ func (c *SSHProxmoxClient) GetSDNZones() ([]SDNZone, error) {
 				config.Controller = controller
 			}
 			if vrfVXLAN, ok := (d["vrf_vxlan"]).(float64); ok {
-				config.VRFVXLAN = int(vrfVXLAN)
+				config.VRFVXLAN = int64(vrfVXLAN)
 			}
 			if mac, ok := (d["mac"]).(string); ok {
 				config.MAC = &mac
@@ -251,7 +251,7 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 	}
 
 	if mtu, ok := data["mtu"].(float64); ok {
-		mtuInt := int(mtu)
+		mtuInt := int64(mtu)
 		zone.MTU = &mtuInt
 	}
 
@@ -294,7 +294,7 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 			config.Bridge = bridge
 		}
 		if tag, ok := (data["tag"]).(float64); ok {
-			config.Tag = int(tag)
+			config.Tag = int64(tag)
 		}
 		if vlanProtocol, ok := (data["vlan_protocol"]).(string); ok {
 			config.VLANProtocol = &vlanProtocol
@@ -312,7 +312,7 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 			config.Controller = controller
 		}
 		if vrfVXLAN, ok := (data["vrf_vxlan"]).(float64); ok {
-			config.VRFVXLAN = int(vrfVXLAN)
+			config.VRFVXLAN = int64(vrfVXLAN)
 		}
 		if mac, ok := (data["mac"]).(string); ok {
 			config.MAC = &mac

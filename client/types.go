@@ -3,7 +3,7 @@ package client
 type SDNZone struct {
 	Zone       string   `json:"zone"`
 	Type       string   `json:"type"`
-	MTU        *int     `json:"mtu,omitempty"`
+	MTU        *int64   `json:"mtu,omitempty"`
 	Nodes      []string `json:"nodes,omitempty"`
 	IPAM       *string  `json:"ipam,omitempty"`
 	DNS        *string  `json:"dns,omitempty"`
@@ -26,7 +26,7 @@ type VLANConfig struct {
 
 type QinQConfig struct {
 	Bridge       string  `json:"bridge"`
-	Tag          int     `json:"tag"`
+	Tag          int64   `json:"tag"`
 	VLANProtocol *string `json:"vlan_protocol,omitempty"`
 }
 
@@ -36,7 +36,7 @@ type VXLANConfig struct {
 
 type EVPNConfig struct {
 	Controller              string   `json:"controller"`
-	VRFVXLAN                int      `json:"vrf_vxlan"`
+	VRFVXLAN                int64    `json:"vrf_vxlan"`
 	MAC                     *string  `json:"mac,omitempty"`
 	ExitNodes               []string `json:"exitnodes,omitempty"`
 	PrimaryExitNode         *string  `json:"primary_exitnode,omitempty"`
