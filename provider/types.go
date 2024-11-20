@@ -11,27 +11,27 @@ type zonesModel struct {
 	DNS        types.String `tfsdk:"dns"`        //optional
 	ReverseDNS types.String `tfsdk:"reversedns"` //optional
 	DNSZone    types.String `tfsdk:"dnszone"`    //optional
-	VLAN       *VLANConfig  `tfsdk:"vlan"`       //optional
-	QinQ       *QinQConfig  `tfsdk:"qinq"`       //optional
-	VXLAN      *VXLANConfig `tfsdk:"vxlan"`      //optional
-	EVPN       *EVPNConfig  `tfsdk:"evpn"`       //optional
+	VLAN       types.Object `tfsdk:"vlan"`       //optional
+	QinQ       types.Object `tfsdk:"qinq"`       //optional
+	VXLAN      types.Object `tfsdk:"vxlan"`      //optional
+	EVPN       types.Object `tfsdk:"evpn"`       //optional
 }
 
-type VLANConfig struct {
+type VLANConfigModel struct {
 	Bridge types.String `tfsdk:"bridge"` //required
 }
 
-type QinQConfig struct {
+type QinQConfigModel struct {
 	Bridge       types.String `tfsdk:"bridge"`       //required
 	Tag          types.Int64  `tfsdk:"tag"`          //required
 	VLANProtocol types.String `tfsdk:"vlanprotocol"` //optional
 }
 
-type VXLANConfig struct {
+type VXLANConfigModel struct {
 	Peer types.Set `tfsdk:"peer"` //required
 }
 
-type EVPNConfig struct {
+type EVPNConfigModel struct {
 	Controller              types.String `tfsdk:"controller"`              //required
 	VRFVXLAN                types.Int64  `tfsdk:"vrf_vxlan"`               //required
 	MAC                     types.String `tfsdk:"mac"`                     //optional

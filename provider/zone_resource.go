@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 //type proxmoxSDNZoneResourceModel = zonesModel
@@ -281,82 +282,95 @@ func convertZonesModeltoClientSDNZone(ctx context.Context, model zonesModel) (*c
 		zone.DNSZone = &dnsZone
 	}
 
-	if model.VLAN != nil {
-		zone.VLAN = &client.VLANConfig{
-			Bridge: model.VLAN.Bridge.ValueString(),
+	if !model.VLAN.IsNull() && !model.VLAN.IsUnknown() {
+		var vlanConfig VLANConfigModel
+		diags := model.VLAN.As(ctx, &vlanConfig, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, diags
 		}
+		clientVLANConfig := &client.VLANConfig{
+			Bridge: vlanConfig.Bridge.ValueString(),
+		}
+		zone.VLAN = clientVLANConfig
 	}
 
-	if model.QinQ != nil {
-		zone.QinQ = &client.QinQConfig{
-			Bridge: model.QinQ.Bridge.ValueString(),
-			Tag:    model.QinQ.Tag.ValueInt64(),
+	if !model.QinQ.IsNull() && !model.QinQ.IsUnknown() {
+		var qinqConfig QinQConfigModel
+		diags := model.QinQ.As(ctx, &qinqConfig, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, diags
 		}
-		if !model.QinQ.VLANProtocol.IsNull() {
-			vlanProtocol := model.QinQ.VLANProtocol.ValueString()
-			zone.QinQ.VLANProtocol = &vlanProtocol
+		clientQinQConfig := &client.QinQConfig{
+			Bridge: qinqConfig.Bridge.ValueString(),
+			Tag:    qinqConfig.Tag.ValueInt64(),
 		}
+		if !qinqConfig.VLANProtocol.IsNull() {
+			vlanProtocol := qinqConfig.VLANProtocol.ValueString()
+			clientQinQConfig.VLANProtocol = &vlanProtocol
+		}
+		zone.QinQ = clientQinQConfig
 	}
 
-	if model.VXLAN != nil {
+	if !model.VXLAN.IsNull() && !model.VXLAN.IsUnknown() {
+		var vxlanConfig VXLANConfigModel
+		diags := model.VXLAN.As(ctx, &vxlanConfig, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, diags
+		}
 		var peers []string
-		diagsPeers := model.VXLAN.Peer.ElementsAs(ctx, &peers, false)
+		diagsPeers := vxlanConfig.Peer.ElementsAs(ctx, &peers, false)
 		diags.Append(diagsPeers...)
 		if diagsPeers.HasError() {
 			return nil, diags
 		}
-		zone.VXLAN = &client.VXLANConfig{
+		clientVXLANConfig := &client.VXLANConfig{
 			Peer: peers,
 		}
+		zone.VXLAN = clientVXLANConfig
 	}
 
-	if model.EVPN != nil {
-		evpnConfig := &client.EVPNConfig{
-			Controller: model.EVPN.Controller.ValueString(),
-			VRFVXLAN:   model.EVPN.VRFVXLAN.ValueInt64(),
+	if !model.EVPN.IsNull() && !model.EVPN.IsUnknown() {
+		var evpnConfig EVPNConfigModel
+		diags := model.EVPN.As(ctx, &evpnConfig, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, diags
 		}
-
-		if !model.EVPN.MAC.IsNull() {
-			mac := model.EVPN.MAC.ValueString()
-			evpnConfig.MAC = &mac
+		clientEVPNConfig := &client.EVPNConfig{
+			Controller: evpnConfig.Controller.ValueString(),
+			VRFVXLAN:   evpnConfig.VRFVXLAN.ValueInt64(),
 		}
-
-		if !model.EVPN.ExitNodes.IsNull() {
-			var exitNodes []string
-			diagsExitNodes := model.EVPN.ExitNodes.ElementsAs(ctx, &exitNodes, false)
-			diags.Append(diagsExitNodes...)
-			if diagsExitNodes.HasError() {
-				return nil, diags
-			}
-			evpnConfig.ExitNodes = exitNodes
+		if !evpnConfig.MAC.IsNull() {
+			mac := evpnConfig.MAC.ValueString()
+			clientEVPNConfig.MAC = &mac
 		}
-
-		if !model.EVPN.PrimaryExitNode.IsNull() {
-			primaryExitNode := model.EVPN.PrimaryExitNode.ValueString()
-			evpnConfig.PrimaryExitNode = &primaryExitNode
+		if !evpnConfig.PrimaryExitNode.IsNull() {
+			primaryExitNode := evpnConfig.PrimaryExitNode.ValueString()
+			clientEVPNConfig.PrimaryExitNode = &primaryExitNode
 		}
-
-		if !model.EVPN.ExitNodesLocalRouting.IsNull() {
-			exitNodesLocalRouting := model.EVPN.ExitNodesLocalRouting.ValueBool()
-			evpnConfig.ExitNodesLocalRouting = &exitNodesLocalRouting
+		if !evpnConfig.ExitNodesLocalRouting.IsNull() {
+			exitNodesLocalRouting := evpnConfig.ExitNodesLocalRouting.ValueBool()
+			clientEVPNConfig.ExitNodesLocalRouting = &exitNodesLocalRouting
 		}
-
-		if !model.EVPN.AdvertiseSubnets.IsNull() {
-			advertiseSubnets := model.EVPN.AdvertiseSubnets.ValueBool()
-			evpnConfig.AdvertiseSubnets = &advertiseSubnets
+		if !evpnConfig.AdvertiseSubnets.IsNull() {
+			advertiseSubnets := evpnConfig.AdvertiseSubnets.ValueBool()
+			clientEVPNConfig.AdvertiseSubnets = &advertiseSubnets
 		}
-
-		if !model.EVPN.DisableARPNdSuppression.IsNull() {
-			disableARPNdSuppression := model.EVPN.DisableARPNdSuppression.ValueBool()
-			evpnConfig.DisableARPNdSuppression = &disableARPNdSuppression
+		if !evpnConfig.DisableARPNdSuppression.IsNull() {
+			disableARPNdSuppression := evpnConfig.DisableARPNdSuppression.ValueBool()
+			clientEVPNConfig.DisableARPNdSuppression = &disableARPNdSuppression
 		}
-
-		if !model.EVPN.RouteTargetImport.IsNull() {
-			routeTargetImport := model.EVPN.RouteTargetImport.ValueString()
-			evpnConfig.RouteTargetImport = &routeTargetImport
+		if !evpnConfig.RouteTargetImport.IsNull() {
+			routeTargetImport := evpnConfig.RouteTargetImport.ValueString()
+			clientEVPNConfig.RouteTargetImport = &routeTargetImport
 		}
-
-		zone.EVPN = evpnConfig
+		var exitNodes []string
+		diagsExitNodes := evpnConfig.ExitNodes.ElementsAs(ctx, &exitNodes, false)
+		diags.Append(diagsExitNodes...)
+		if diagsExitNodes.HasError() {
+			return nil, diags
+		}
+		clientEVPNConfig.ExitNodes = exitNodes
+		zone.EVPN = clientEVPNConfig
 	}
 	return zone, diags
 }

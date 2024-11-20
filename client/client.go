@@ -29,6 +29,7 @@ func NewSSHProxmoxClient(user, password, address string) (*SSHProxmoxClient, err
 }
 
 func (c *SSHProxmoxClient) RunCommand(cmd string) (string, error) {
+	fmt.Println("Running command:", cmd)
 	session, err := c.client.NewSession()
 	if err != nil {
 		return "", err

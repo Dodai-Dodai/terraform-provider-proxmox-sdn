@@ -345,40 +345,40 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 	command := fmt.Sprintf("pvesh set /cluster/sdn/zones/%s", zone.Zone)
 
-	if zone.MTU != nil {
+	if zone.MTU != nil && *zone.MTU != 0 {
 		command += fmt.Sprintf(" --mtu %d", *zone.MTU)
 	} else if zone.MTU == nil /* フィールドがあり、nilが指定されたら、そのフィールドを削除する*/ {
 		command += " --delete mtu"
 	}
 
-	if len(zone.Nodes) > 0 {
+	if len(zone.Nodes) > 0 && zone.Nodes != nil {
 		nodes := strings.Join(zone.Nodes, ",")
 		command += fmt.Sprintf(" --nodes %s", nodes)
-	} else if zone.Nodes == nil {
+	} else if zone.Nodes == nil && len(zone.Nodes) == 0 {
 		command += " --delete nodes"
 	}
 
-	if zone.IPAM != nil {
+	if zone.IPAM != nil && *zone.IPAM != "" {
 		command += fmt.Sprintf(" --ipam %s", *zone.IPAM)
-	} else if zone.IPAM == nil {
+	} else if zone.IPAM == nil && *zone.IPAM == "" {
 		command += " --delete ipam"
 	}
 
-	if zone.DNS != nil {
+	if zone.DNS != nil && *zone.DNS != "" {
 		command += fmt.Sprintf(" --dns %s", *zone.DNS)
-	} else if zone.DNS == nil {
+	} else if zone.DNS == nil && *zone.DNS == "" {
 		command += " --delete dns"
 	}
 
-	if zone.ReverseDNS != nil {
+	if zone.ReverseDNS != nil && *zone.ReverseDNS != "" {
 		command += fmt.Sprintf(" --reversedns %s", *zone.ReverseDNS)
-	} else if zone.ReverseDNS == nil {
+	} else if zone.ReverseDNS == nil && *zone.ReverseDNS == "" {
 		command += " --delete reversedns"
 	}
 
-	if zone.DNSZone != nil {
+	if zone.DNSZone != nil && *zone.DNSZone != "" {
 		command += fmt.Sprintf(" --dnszone %s", *zone.DNSZone)
-	} else if zone.DNSZone == nil {
+	} else if zone.DNSZone == nil && *zone.DNSZone == "" {
 		command += " --delete dnszone"
 	}
 
@@ -398,53 +398,75 @@ func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 		if zone.QinQ != nil {
 			command += fmt.Sprintf(" --bridge %s", zone.QinQ.Bridge)
 			command += fmt.Sprintf(" --tag %d", zone.QinQ.Tag)
-			if zone.QinQ.VLANProtocol != nil {
+			if zone.QinQ.VLANProtocol != nil && *zone.QinQ.VLANProtocol != "" {
 				command += fmt.Sprintf(" --vlan-protocol %s", *zone.QinQ.VLANProtocol)
+			} else if zone.QinQ.VLANProtocol == nil && *zone.QinQ.VLANProtocol == "" {
+				command += " --delete vlan-protocol"
 			}
 		}
 	case "vxlan":
 		if zone.VXLAN != nil {
 			peers := strings.Join(zone.VXLAN.Peer, ",")
 			command += fmt.Sprintf(" --peer %s", peers)
-
 		}
 	case "evpn":
 		if zone.EVPN != nil {
 			command += fmt.Sprintf(" --controller %s", zone.EVPN.Controller)
 			command += fmt.Sprintf(" --vrf-vxlan %d", zone.EVPN.VRFVXLAN)
-			if zone.EVPN.MAC != nil {
+
+			if zone.EVPN.MAC != nil && *zone.EVPN.MAC != "" {
 				command += fmt.Sprintf(" --mac %s", *zone.EVPN.MAC)
+			} else if zone.EVPN.MAC == nil && *zone.EVPN.MAC == "" {
+				command += " --delete mac"
 			}
-			if len(zone.EVPN.ExitNodes) > 0 {
+
+			if len(zone.EVPN.ExitNodes) > 0 && zone.EVPN.ExitNodes != nil {
 				exitNodes := strings.Join(zone.EVPN.ExitNodes, ",")
 				command += fmt.Sprintf(" --exitnodes %s", exitNodes)
+			} else if zone.EVPN.ExitNodes == nil && len(zone.EVPN.ExitNodes) == 0 {
+				command += " --delete exitnodes"
 			}
-			if zone.EVPN.PrimaryExitNode != nil {
+
+			if zone.EVPN.PrimaryExitNode != nil && *zone.EVPN.PrimaryExitNode != "" {
 				command += fmt.Sprintf(" --primary-exitnode %s", *zone.EVPN.PrimaryExitNode)
+			} else if zone.EVPN.PrimaryExitNode == nil && *zone.EVPN.PrimaryExitNode == "" {
+				command += " --delete primary-exitnode"
 			}
+
 			if zone.EVPN.ExitNodesLocalRouting != nil {
 				val := "false"
 				if *zone.EVPN.ExitNodesLocalRouting {
 					val = "true"
 				}
 				command += fmt.Sprintf(" --exitnodes-local-routing %s", val)
+			} else if zone.EVPN.ExitNodesLocalRouting == nil {
+				command += " --delete exitnodes-local-routing"
 			}
+
 			if zone.EVPN.AdvertiseSubnets != nil {
 				val := "false"
 				if *zone.EVPN.AdvertiseSubnets {
 					val = "true"
 				}
 				command += fmt.Sprintf(" --advertise-subnets %s", val)
+			} else if zone.EVPN.AdvertiseSubnets == nil {
+				command += " --delete advertise-subnets"
 			}
+
 			if zone.EVPN.DisableARPNdSuppression != nil {
 				val := "false"
 				if *zone.EVPN.DisableARPNdSuppression {
 					val = "true"
 				}
 				command += fmt.Sprintf(" --disable-arp-nd-suppression %s", val)
+			} else if zone.EVPN.DisableARPNdSuppression == nil {
+				command += " --delete disable-arp-nd-suppression"
 			}
-			if zone.EVPN.RouteTargetImport != nil {
+
+			if zone.EVPN.RouteTargetImport != nil && *zone.EVPN.RouteTargetImport != "" {
 				command += fmt.Sprintf(" --rt-import %s", *zone.EVPN.RouteTargetImport)
+			} else if zone.EVPN.RouteTargetImport == nil && *zone.EVPN.RouteTargetImport == "" {
+				command += " --delete rt-import"
 			}
 		}
 	}

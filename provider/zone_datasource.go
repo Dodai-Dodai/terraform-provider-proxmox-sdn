@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/client"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -222,17 +223,53 @@ func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zones
 	}
 
 	if zone.VLAN != nil {
-		zoneModel.VLAN = &VLANConfig{
+		vlanModel := VLANConfigModel{
 			Bridge: types.StringValue(zone.VLAN.Bridge),
 		}
+
+		vlanObject, diag := types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"bridge": types.StringType,
+		}, vlanModel)
+		if diag.HasError() {
+			diags.Append(diag...)
+			return zoneModel, diags
+		}
+
+		zoneModel.VLAN = vlanObject
+	} else {
+		// VLANがnilの場合、nullのObjectを作成
+		zoneModel.VLAN = types.ObjectNull(map[string]attr.Type{
+			"bridge": types.StringType,
+		})
 	}
 
 	if zone.QinQ != nil {
-		zoneModel.QinQ = &QinQConfig{
-			Bridge:       types.StringValue(zone.QinQ.Bridge),
-			Tag:          types.Int64Value(zone.QinQ.Tag),
-			VLANProtocol: types.StringPointerValue(zone.QinQ.VLANProtocol),
+		qinqModel := QinQConfigModel{
+			Bridge: types.StringValue(zone.QinQ.Bridge),
+			Tag:    types.Int64Value(zone.QinQ.Tag),
 		}
+		if zone.QinQ.VLANProtocol != nil {
+			qinqModel.VLANProtocol = types.StringPointerValue(zone.QinQ.VLANProtocol)
+		}
+
+		qinqObject, diag := types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"bridge":       types.StringType,
+			"tag":          types.Int64Type,
+			"vlanprotocol": types.StringType,
+		}, qinqModel)
+		if diag.HasError() {
+			diags.Append(diag...)
+			return zoneModel, diags
+		}
+
+		zoneModel.QinQ = qinqObject
+	} else {
+		// QinQがnilの場合、nullのObjectを作成
+		zoneModel.QinQ = types.ObjectNull(map[string]attr.Type{
+			"bridge":       types.StringType,
+			"tag":          types.Int64Type,
+			"vlanprotocol": types.StringType,
+		})
 	}
 
 	if zone.VXLAN != nil {
@@ -241,32 +278,95 @@ func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zones
 			diags.Append(diagPeers...)
 			return zoneModel, diags
 		}
-		diags.Append(diagPeers...)
 
-		zoneModel.VXLAN = &VXLANConfig{
+		vxlanModel := VXLANConfigModel{
 			Peer: peerSet,
 		}
+
+		vxlanObject, diag := types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"peer": types.SetType{ElemType: types.StringType},
+		}, vxlanModel)
+		if diag.HasError() {
+			diags.Append(diag...)
+			return zoneModel, diags
+		}
+
+		zoneModel.VXLAN = vxlanObject
+	} else {
+		// VXLANがnilの場合、nullのObjectを作成
+		zoneModel.VXLAN = types.ObjectNull(map[string]attr.Type{
+			"peer": types.SetType{ElemType: types.StringType},
+		})
 	}
 
 	if zone.EVPN != nil {
-		exitNodesSet, diagExitNodes := types.SetValueFrom(ctx, types.StringType, zone.EVPN.ExitNodes)
-		if diagExitNodes.HasError() {
-			diags.Append(diagExitNodes...)
+		var exitNodesSet types.Set
+		if zone.EVPN.ExitNodes != nil {
+			var diagExitNodes diag.Diagnostics
+			exitNodesSet, diagExitNodes = types.SetValueFrom(ctx, types.StringType, zone.EVPN.ExitNodes)
+			if diagExitNodes.HasError() {
+				diags.Append(diagExitNodes...)
+				return zoneModel, diags
+			}
+		} else {
+			// ExitNodesがnilの場合、nullのSetを作成
+			exitNodesSet = types.SetNull(types.StringType)
+		}
+
+		evpnModel := EVPNConfigModel{
+			Controller: types.StringValue(zone.EVPN.Controller),
+			VRFVXLAN:   types.Int64Value(zone.EVPN.VRFVXLAN),
+			ExitNodes:  exitNodesSet,
+		}
+		if zone.EVPN.MAC != nil {
+			evpnModel.MAC = types.StringPointerValue(zone.EVPN.MAC)
+		}
+		if zone.EVPN.PrimaryExitNode != nil {
+			evpnModel.PrimaryExitNode = types.StringPointerValue(zone.EVPN.PrimaryExitNode)
+		}
+		if zone.EVPN.ExitNodesLocalRouting != nil {
+			evpnModel.ExitNodesLocalRouting = types.BoolPointerValue(zone.EVPN.ExitNodesLocalRouting)
+		}
+		if zone.EVPN.AdvertiseSubnets != nil {
+			evpnModel.AdvertiseSubnets = types.BoolPointerValue(zone.EVPN.AdvertiseSubnets)
+		}
+		if zone.EVPN.DisableARPNdSuppression != nil {
+			evpnModel.DisableARPNdSuppression = types.BoolPointerValue(zone.EVPN.DisableARPNdSuppression)
+		}
+		if zone.EVPN.RouteTargetImport != nil {
+			evpnModel.RouteTargetImport = types.StringPointerValue(zone.EVPN.RouteTargetImport)
+		}
+
+		evpnObject, diag := types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"controller":              types.StringType,
+			"vrf_vxlan":               types.Int64Type,
+			"mac":                     types.StringType,
+			"exitnodes":               types.SetType{ElemType: types.StringType},
+			"primaryexitnode":         types.StringType,
+			"exitnodeslocalrouting":   types.BoolType,
+			"advertisesubnets":        types.BoolType,
+			"disablearpndsuppression": types.BoolType,
+			"rtimport":                types.StringType,
+		}, evpnModel)
+		if diag.HasError() {
+			diags.Append(diag...)
 			return zoneModel, diags
 		}
-		diags.Append(diagExitNodes...)
 
-		zoneModel.EVPN = &EVPNConfig{
-			Controller:              types.StringValue(zone.EVPN.Controller),
-			VRFVXLAN:                types.Int64Value(zone.EVPN.VRFVXLAN),
-			MAC:                     types.StringPointerValue(zone.EVPN.MAC),
-			ExitNodes:               exitNodesSet,
-			PrimaryExitNode:         types.StringPointerValue(zone.EVPN.PrimaryExitNode),
-			ExitNodesLocalRouting:   types.BoolPointerValue(zone.EVPN.ExitNodesLocalRouting),
-			AdvertiseSubnets:        types.BoolPointerValue(zone.EVPN.AdvertiseSubnets),
-			DisableARPNdSuppression: types.BoolPointerValue(zone.EVPN.DisableARPNdSuppression),
-			RouteTargetImport:       types.StringPointerValue(zone.EVPN.RouteTargetImport),
-		}
+		zoneModel.EVPN = evpnObject
+	} else {
+		// EVPNがnilの場合、nullのObjectを作成
+		zoneModel.EVPN = types.ObjectNull(map[string]attr.Type{
+			"controller":              types.StringType,
+			"vrf_vxlan":               types.Int64Type,
+			"mac":                     types.StringType,
+			"exitnodes":               types.SetType{ElemType: types.StringType},
+			"primaryexitnode":         types.StringType,
+			"exitnodeslocalrouting":   types.BoolType,
+			"advertisesubnets":        types.BoolType,
+			"disablearpndsuppression": types.BoolType,
+			"rtimport":                types.StringType,
+		})
 	}
 
 	return zoneModel, diags
