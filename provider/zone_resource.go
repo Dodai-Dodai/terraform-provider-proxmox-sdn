@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -54,10 +56,17 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, _ resource.SchemaRequ
 			"zone": schema.StringAttribute{
 				Description: "The name of the zone",
 				Required:    true,
+				// 変更されたらリソースを再作成する
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"type": schema.StringAttribute{
 				Description: "The type of the zone",
 				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"mtu": schema.Int64Attribute{
 				Description: "The MTU Num of the Zone",
@@ -247,12 +256,12 @@ func convertZonesModeltoClientSDNZone(ctx context.Context, model zonesModel) (*c
 		Type: model.Type.ValueString(),
 	}
 
-	if !model.MTU.IsNull() {
+	if !model.MTU.IsNull() && !model.MTU.IsUnknown() {
 		mtu := model.MTU.ValueInt64()
 		zone.MTU = &mtu
 	}
 
-	if !model.Nodes.IsNull() {
+	if !model.Nodes.IsNull() && !model.Nodes.IsUnknown() {
 		var nodes []string
 		diagNodes := model.Nodes.ElementsAs(ctx, &nodes, false)
 		diags.Append(diagNodes...)
@@ -262,22 +271,22 @@ func convertZonesModeltoClientSDNZone(ctx context.Context, model zonesModel) (*c
 		zone.Nodes = nodes
 	}
 
-	if !model.IPAM.IsNull() {
+	if !model.IPAM.IsNull() && !model.IPAM.IsUnknown() {
 		ipam := model.IPAM.ValueString()
 		zone.IPAM = &ipam
 	}
 
-	if !model.DNS.IsNull() {
+	if !model.DNS.IsNull() && !model.DNS.IsUnknown() {
 		dns := model.DNS.ValueString()
 		zone.DNS = &dns
 	}
 
-	if !model.ReverseDNS.IsNull() {
+	if !model.ReverseDNS.IsNull() && !model.ReverseDNS.IsUnknown() {
 		reverseDNS := model.ReverseDNS.ValueString()
 		zone.ReverseDNS = &reverseDNS
 	}
 
-	if !model.DNSZone.IsNull() {
+	if !model.DNSZone.IsNull() && !model.DNSZone.IsUnknown() {
 		dnsZone := model.DNSZone.ValueString()
 		zone.DNSZone = &dnsZone
 	}

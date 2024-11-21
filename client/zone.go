@@ -62,10 +62,13 @@ func (c *SSHProxmoxClient) CreateSDNZone(zone SDNZone) error {
 			}
 		}
 	case "vxlan":
-		if zone.VXLAN != nil {
-			peer := strings.Join(zone.VXLAN.Peer, ",")
-			command += fmt.Sprintf(" --peer %s", peer)
+		if zone.VXLAN != nil && len(zone.VXLAN.Peer) > 0 {
+			peers := strings.Join(zone.VXLAN.Peer, ",")
+			command += fmt.Sprintf(" --peer %s", peers)
+		} else {
+			return fmt.Errorf("peer is required for VXLAN zone")
 		}
+
 	case "evpn":
 		if zone.EVPN != nil {
 			// required field so no need to check for nil
@@ -301,11 +304,13 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 		}
 		zone.QinQ = config
 	case "vxlan":
-		config := &VXLANConfig{}
-		if peer, ok := (data["peer"]).(string); ok {
-			config.Peer = strings.Split(peer, ",")
+		if peers, ok := (data["peer"]).([]interface{}); ok {
+			for _, peer := range peers {
+				if peerStr, ok := peer.(string); ok {
+					zone.VXLAN.Peer = append(zone.VXLAN.Peer, peerStr)
+				}
+			}
 		}
-		zone.VXLAN = config
 	case "evpn":
 		config := &EVPNConfig{}
 		if controller, ok := (data["controller"]).(string); ok {
@@ -405,9 +410,11 @@ func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 			}
 		}
 	case "vxlan":
-		if zone.VXLAN != nil {
+		if zone.VXLAN != nil && len(zone.VXLAN.Peer) > 0 {
 			peers := strings.Join(zone.VXLAN.Peer, ",")
 			command += fmt.Sprintf(" --peer %s", peers)
+		} else {
+			command += " --delete peer"
 		}
 	case "evpn":
 		if zone.EVPN != nil {
