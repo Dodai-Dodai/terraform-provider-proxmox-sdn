@@ -3,7 +3,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -64,7 +63,7 @@ func (c *SSHProxmoxClient) CreateSDNZone(zone SDNZone) error {
 	case "vxlan":
 		if zone.VXLAN != nil && len(zone.VXLAN.Peer) > 0 {
 			peers := strings.Join(zone.VXLAN.Peer, ",")
-			command += fmt.Sprintf(" --peer %s", peers)
+			command += fmt.Sprintf(" --peers %s", peers)
 		} else {
 			return fmt.Errorf("peer is required for VXLAN zone")
 		}
@@ -184,7 +183,7 @@ func (c *SSHProxmoxClient) GetSDNZones() ([]SDNZone, error) {
 			zone.QinQ = config
 		case "vxlan":
 			config := &VXLANConfig{}
-			if peer, ok := (d["peer"]).(string); ok {
+			if peer, ok := (d["peers"]).(string); ok {
 				config.Peer = strings.Split(peer, ",")
 			}
 			zone.VXLAN = config
@@ -232,115 +231,9 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 		return nil, err
 	}
 
-	file, err := os.Create(fmt.Sprintf("%s.json", zoneID))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create file: %w", err)
-	}
-	defer file.Close()
-
 	var zone SDNZone
 	if err := json.Unmarshal([]byte(output), &zone); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
-	}
-
-	var data map[string]interface{}
-	if err := json.Unmarshal([]byte(output), &data); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
-	}
-
-	zone = SDNZone{
-		Zone: data["zone"].(string),
-		Type: data["type"].(string),
-	}
-
-	if mtu, ok := data["mtu"].(float64); ok {
-		mtuInt := int64(mtu)
-		zone.MTU = &mtuInt
-	}
-
-	if nodes, ok := data["nodes"].(string); ok {
-		zone.Nodes = strings.Split(nodes, ",")
-	}
-
-	if ipam, ok := data["ipam"].(string); ok {
-		zone.IPAM = &ipam
-	}
-
-	if dns, ok := data["dns"].(string); ok {
-		zone.DNS = &dns
-	}
-
-	if reverseDNS, ok := data["reversedns"].(string); ok {
-		zone.ReverseDNS = &reverseDNS
-	}
-
-	if dnsZone, ok := data["dnszone"].(string); ok {
-		zone.DNSZone = &dnsZone
-	}
-
-	switch zone.Type {
-	// case "simple":
-	// 	config := &SimpleConfig{}
-	// 	if dhcp, ok := (data["dhcp"]).(bool); ok {
-	// 		config.AutoDHCP = &dhcp
-	// 	}
-	// 	zone.Simple = config
-	case "vlan":
-		config := &VLANConfig{}
-		if bridge, ok := (data["bridge"]).(string); ok {
-			config.Bridge = bridge
-		}
-		zone.VLAN = config
-	case "qinq":
-		config := &QinQConfig{}
-		if bridge, ok := (data["bridge"]).(string); ok {
-			config.Bridge = bridge
-		}
-		if tag, ok := (data["tag"]).(float64); ok {
-			config.Tag = int64(tag)
-		}
-		if vlanProtocol, ok := (data["vlan_protocol"]).(string); ok {
-			config.VLANProtocol = &vlanProtocol
-		}
-		zone.QinQ = config
-	case "vxlan":
-		if peers, ok := (data["peer"]).([]interface{}); ok {
-			for _, peer := range peers {
-				if peerStr, ok := peer.(string); ok {
-					zone.VXLAN.Peer = append(zone.VXLAN.Peer, peerStr)
-				}
-			}
-		}
-	case "evpn":
-		config := &EVPNConfig{}
-		if controller, ok := (data["controller"]).(string); ok {
-			config.Controller = controller
-		}
-		if vrfVXLAN, ok := (data["vrf_vxlan"]).(float64); ok {
-			config.VRFVXLAN = int64(vrfVXLAN)
-		}
-		if mac, ok := (data["mac"]).(string); ok {
-			config.MAC = &mac
-		}
-		if exitNodes, ok := (data["exitnodes"]).(string); ok {
-			config.ExitNodes = strings.Split(exitNodes, ",")
-		}
-		if primaryExitNode, ok := (data["primary_exitnode"]).(string); ok {
-			config.PrimaryExitNode = &primaryExitNode
-		}
-		if exitNodesLocalRouting, ok := (data["exitnodes_local_routing"]).(bool); ok {
-			config.ExitNodesLocalRouting = &exitNodesLocalRouting
-		}
-		if advertiseSubnets, ok := (data["advertise_subnets"]).(bool); ok {
-			config.AdvertiseSubnets = &advertiseSubnets
-		}
-		if disableARPNdSuppression, ok := (data["disable_arp_nd_suppression"]).(bool); ok {
-			config.DisableARPNdSuppression = &disableARPNdSuppression
-		}
-		if routeTargetImport, ok := (data["rt_import"]).(string); ok {
-			config.RouteTargetImport = &routeTargetImport
-		}
-		zone.EVPN = config
 	}
 
 	return &zone, nil
@@ -412,9 +305,9 @@ func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 	case "vxlan":
 		if zone.VXLAN != nil && len(zone.VXLAN.Peer) > 0 {
 			peers := strings.Join(zone.VXLAN.Peer, ",")
-			command += fmt.Sprintf(" --peer %s", peers)
+			command += fmt.Sprintf(" --peers %s", peers)
 		} else {
-			command += " --delete peer"
+			command += " --delete peers"
 		}
 	case "evpn":
 		if zone.EVPN != nil {

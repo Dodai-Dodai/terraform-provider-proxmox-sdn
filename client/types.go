@@ -2,18 +2,18 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
+	"strings"
 )
 
 type SDNZone struct {
-	Zone       string     `json:"zone"`
-	Type       string     `json:"type"`
-	MTU        *int64     `json:"mtu,omitempty"`
-	Nodes      NodesField `json:"nodes,omitempty"`
-	IPAM       *string    `json:"ipam,omitempty"`
-	DNS        *string    `json:"dns,omitempty"`
-	ReverseDNS *string    `json:"reversedns,omitempty"`
-	DNSZone    *string    `json:"dnszone,omitempty"`
+	Zone       string   `json:"zone"`
+	Type       string   `json:"type"`
+	MTU        *int64   `json:"mtu,omitempty"`
+	Nodes      []string `json:"nodes,omitempty"`
+	IPAM       *string  `json:"ipam,omitempty"`
+	DNS        *string  `json:"dns,omitempty"`
+	ReverseDNS *string  `json:"reversedns,omitempty"`
+	DNSZone    *string  `json:"dnszone,omitempty"`
 	// Simple     *SimpleConfig `json:"simple,omitempty"`
 	VLAN  *VLANConfig  `json:"vlan,omitempty"`
 	QinQ  *QinQConfig  `json:"qinq,omitempty"`
@@ -25,20 +25,22 @@ type SDNZone struct {
 // 	AutoDHCP *bool `json:"auto_dhcp"`
 // }
 
-type NodesField []string
-
-func (n *NodesField) UnmarshalJSON(data []byte) error {
-	var single string
-	if err := json.Unmarshal(data, &single); err == nil {
-		*n = []string{single}
-		return nil
+func (s *SDNZone) UnmarshalJSON(data []byte) error {
+	type Alias SDNZone
+	aux := &struct {
+		Nodes string `json:"nodes,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(s),
 	}
-
-	var multiple []string
-	if err := json.Unmarshal(data, &multiple); err != nil {
-		return fmt.Errorf("failed to unmarshal nodes field: %w", err)
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
 	}
-	*n = multiple
+	if aux.Nodes != "" {
+		s.Nodes = strings.Split(aux.Nodes, ",")
+	} else {
+		s.Nodes = []string{}
+	}
 	return nil
 }
 
@@ -53,7 +55,7 @@ type QinQConfig struct {
 }
 
 type VXLANConfig struct {
-	Peer []string `json:"peer"`
+	Peer []string `json:"peers"`
 }
 
 type EVPNConfig struct {
@@ -66,4 +68,38 @@ type EVPNConfig struct {
 	AdvertiseSubnets        *bool    `json:"advertise_subnets,omitempty"`
 	DisableARPNdSuppression *bool    `json:"disable_arp_nd_suppression,omitempty"`
 	RouteTargetImport       *string  `json:"rt_import,omitempty"`
+}
+
+func (v *VXLANConfig) UnmarshalJSON(data []byte) error {
+	var tmp struct {
+		Peers string `json:"peers"`
+	}
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	if tmp.Peers != "" {
+		v.Peer = strings.Split(tmp.Peers, ",")
+	} else {
+		v.Peer = []string{}
+	}
+	return nil
+}
+
+func (e *EVPNConfig) UnmarshalJSON(data []byte) error {
+	type Alias EVPNConfig
+	aux := &struct {
+		ExitNodes string `json:"exitnodes,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(e),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if aux.ExitNodes != "" {
+		e.ExitNodes = strings.Split(aux.ExitNodes, ",")
+	} else {
+		e.ExitNodes = []string{}
+	}
+	return nil
 }
