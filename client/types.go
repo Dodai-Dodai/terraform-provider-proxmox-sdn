@@ -14,92 +14,108 @@ type SDNZone struct {
 	DNS        *string  `json:"dns,omitempty"`
 	ReverseDNS *string  `json:"reversedns,omitempty"`
 	DNSZone    *string  `json:"dnszone,omitempty"`
-	// Simple     *SimpleConfig `json:"simple,omitempty"`
-	VLAN  *VLANConfig  `json:"vlan,omitempty"`
-	QinQ  *QinQConfig  `json:"qinq,omitempty"`
-	VXLAN *VXLANConfig `json:"vxlan,omitempty"`
-	EVPN  *EVPNConfig  `json:"evpn,omitempty"`
+
+	Bridge *string `json:"bridge,omitempty"` // for VLAN, QinQ
+
+	Tag          *int64  `json:"tag,omitempty"`           // for QinQ
+	VLANProtocol *string `json:"vlan_protocol,omitempty"` // for QinQ
+
+	Peers []string `json:"peers,omitempty"` // for VXLAN
+
+	Controller              *string  `json:"controller,omitempty"`                 // for EVPN
+	VRFVXLAN                *int64   `json:"vrf_vxlan,omitempty"`                  // for EVPN
+	MAC                     *string  `json:"mac,omitempty"`                        // for EVPN
+	ExitNodes               []string `json:"exitnodes,omitempty"`                  // for EVPN
+	PrimaryExitNode         *string  `json:"primary_exitnode,omitempty"`           // for EVPN
+	ExitNodesLocalRouting   *bool    `json:"exitnodes_local_routing,omitempty"`    // for EVPN
+	AdvertiseSubnets        *bool    `json:"advertise_subnets,omitempty"`          // for EVPN
+	DisableARPNdSuppression *bool    `json:"disable_arp_nd_suppression,omitempty"` // for EVPN
+	RouteTargetImport       *string  `json:"rt_import,omitempty"`                  // for EVPN
 }
 
-// type SimpleConfig struct {
-// 	AutoDHCP *bool `json:"auto_dhcp"`
-// }
-
-func (s *SDNZone) UnmarshalJSON(data []byte) error {
+// []stringでJSONのマーシャライズをしたいが、Proxmoxは"hoge1, hoge2"のような形式で受け取るため、カスタムマーシャラーを作成
+// カスタムマーシャラー
+func (n *SDNZone) MarshalJSON() ([]byte, error) {
 	type Alias SDNZone
-	aux := &struct {
-		Nodes string `json:"nodes,omitempty"`
-		*Alias
-	}{
-		Alias: (*Alias)(s),
-	}
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-	if aux.Nodes != "" {
-		s.Nodes = strings.Split(aux.Nodes, ",")
-	} else {
-		s.Nodes = []string{}
-	}
-	return nil
-}
-
-type VLANConfig struct {
-	Bridge string `json:"bridge"`
-}
-
-type QinQConfig struct {
-	Bridge       string  `json:"bridge"`
-	Tag          int64   `json:"tag"`
-	VLANProtocol *string `json:"vlan_protocol,omitempty"`
-}
-
-type VXLANConfig struct {
-	Peer []string `json:"peers"`
-}
-
-type EVPNConfig struct {
-	Controller              string   `json:"controller"`
-	VRFVXLAN                int64    `json:"vrf_vxlan"`
-	MAC                     *string  `json:"mac,omitempty"`
-	ExitNodes               []string `json:"exitnodes,omitempty"`
-	PrimaryExitNode         *string  `json:"primary_exitnode,omitempty"`
-	ExitNodesLocalRouting   *bool    `json:"exitnodes_local_routing,omitempty"`
-	AdvertiseSubnets        *bool    `json:"advertise_subnets,omitempty"`
-	DisableARPNdSuppression *bool    `json:"disable_arp_nd_suppression,omitempty"`
-	RouteTargetImport       *string  `json:"rt_import,omitempty"`
-}
-
-func (v *VXLANConfig) UnmarshalJSON(data []byte) error {
-	var tmp struct {
-		Peers string `json:"peers"`
-	}
-	if err := json.Unmarshal(data, &tmp); err != nil {
-		return err
-	}
-	if tmp.Peers != "" {
-		v.Peer = strings.Split(tmp.Peers, ",")
-	} else {
-		v.Peer = []string{}
-	}
-	return nil
-}
-
-func (e *EVPNConfig) UnmarshalJSON(data []byte) error {
-	type Alias EVPNConfig
-	aux := &struct {
+	return json.Marshal(&struct {
+		Nodes     string `json:"nodes,omitempty"`
+		Peers     string `json:"peers,omitempty"`
 		ExitNodes string `json:"exitnodes,omitempty"`
 		*Alias
 	}{
-		Alias: (*Alias)(e),
+		Nodes: func() string {
+			if len(n.Nodes) > 0 {
+				return strings.Join(n.Nodes, ", ")
+			}
+			return ""
+		}(),
+		Peers: func() string {
+			if len(n.Peers) > 0 {
+				return strings.Join(n.Peers, ", ")
+			}
+			return ""
+		}(),
+		ExitNodes: func() string {
+			if len(n.ExitNodes) > 0 {
+				return strings.Join(n.ExitNodes, ", ")
+			}
+			return ""
+		}(),
+		Alias: (*Alias)(n),
+	})
+}
+
+// カスタムアンマーシャラー
+func (n *SDNZone) UnmarshalJSON(data []byte) error {
+	type Alias SDNZone
+	aux := &struct {
+		Nodes     string `json:"nodes,omitempty"`
+		Peers     string `json:"peers,omitempty"`
+		ExitNodes string `json:"exitnodes,omitempty"`
+		*Alias
+	}{
+		Alias: &Alias{},
 	}
-	if err := json.Unmarshal(data, &aux); err != nil {
+
+	if err := json.Unmarshal(data, aux); err != nil {
 		return err
 	}
-	if aux.ExitNodes != "" {
-		e.ExitNodes = strings.Split(aux.ExitNodes, ",")
+
+	// Assign unmarshalled data to n
+	*n = SDNZone(*aux.Alias)
+
+	// Split and trim Nodes
+	if aux.Nodes != "" {
+		rawNodes := strings.Split(aux.Nodes, ",")
+		n.Nodes = make([]string, len(rawNodes))
+		for i, s := range rawNodes {
+			n.Nodes[i] = strings.TrimSpace(s)
+		}
 	} else {
-		e.ExitNodes = []string{}
+		n.Nodes = nil
 	}
+
+	// Split and trim Peers
+	if aux.Peers != "" {
+		rawPeers := strings.Split(aux.Peers, ",")
+		n.Peers = make([]string, len(rawPeers))
+		for i, s := range rawPeers {
+			n.Peers[i] = strings.TrimSpace(s)
+		}
+	} else {
+		n.Peers = nil
+	}
+
+	// Split and trim ExitNodes
+	if aux.ExitNodes != "" {
+		rawExitNodes := strings.Split(aux.ExitNodes, ",")
+		n.ExitNodes = make([]string, len(rawExitNodes))
+		for i, s := range rawExitNodes {
+			n.ExitNodes[i] = strings.TrimSpace(s)
+		}
+	} else {
+		n.ExitNodes = nil
+	}
+
 	return nil
 }
