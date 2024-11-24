@@ -179,5 +179,7 @@ func (p *ProxmoxSDNProvider) DataSources(_ context.Context) []func() datasource.
 }
 
 func (p *ProxmoxSDNProvider) Resources(_ context.Context) []func() resource.Resource {
-	return nil
+	return []func() resource.Resource{
+		NewProxmoxSDNZoneResource,
+	}
 }

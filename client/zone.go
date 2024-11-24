@@ -147,12 +147,11 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 	return &zone, nil
 }
 
-// // UpdateSDNZone updates an existing SDN zone in Proxmox.
-// func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
-// 	command := fmt.Sprintf("pvesh set /cluster/sdn/zones/%s", zone.Zone)
+// UpdateSDNZone updates an existing SDN zone in Proxmox.
+func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
+	return nil
 
-// 	if
-// }
+}
 
 // DeleteSDNZone deletes an existing SDN zone in Proxmox.
 func (c *SSHProxmoxClient) DeleteSDNZone(zoneID string) error {
