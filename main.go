@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
+
 	"github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"log"
 )
 
 var (
@@ -19,7 +20,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/Dodai-Dodai/proxmox-sdn",
+		Address: "registry.terraform.io/dodai-dodai/proxmox-sdn",
 		Debug:   debug,
 	}
 

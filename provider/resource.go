@@ -70,7 +70,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"mtu": schema.Int64Attribute{
 				Description: "The MTU Num of the Zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
 				},
@@ -79,7 +79,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 				Description: "Set of nodes in the zone",
 				ElementType: types.StringType,
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.RequiresReplace(),
 				},
@@ -87,7 +87,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"ipam": schema.StringAttribute{
 				Description: "The IPAM of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -95,7 +95,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"dns": schema.StringAttribute{
 				Description: "The DNS of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -103,7 +103,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"reversedns": schema.StringAttribute{
 				Description: "The reverse dns of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -111,7 +111,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"dnszone": schema.StringAttribute{
 				Description: "The DnsZone of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -119,7 +119,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"bridge": schema.StringAttribute{
 				Description: "The bridge of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -132,7 +132,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"tag": schema.Int64Attribute{
 				Description: "The tag of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
 				},
@@ -145,7 +145,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"vlanprotocol": schema.StringAttribute{
 				Description: "The VLAN Protocol of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -161,7 +161,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 				Description: "Set of peers in the zone",
 				ElementType: types.StringType,
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.RequiresReplace(),
 				},
@@ -176,7 +176,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"controller": schema.StringAttribute{
 				Description: "The controller of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -190,7 +190,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"vrf_vxlan": schema.Int64Attribute{
 				Description: "The VRFVXLAN of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplace(),
 				},
@@ -204,7 +204,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"mac": schema.StringAttribute{
 				Description: "The MAC of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -219,7 +219,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 				Description: "Set of exit nodes in the zone",
 				ElementType: types.StringType,
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.RequiresReplace(),
 				},
@@ -233,7 +233,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"primaryexitnode": schema.StringAttribute{
 				Description: "The primary exit node of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -247,7 +247,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"exitnodeslocalrouting": schema.BoolAttribute{
 				Description: "The exit nodes local routing of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
@@ -261,7 +261,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"advertisesubnets": schema.BoolAttribute{
 				Description: "The advertise subnets of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
@@ -275,7 +275,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"disablearpndsuppression": schema.BoolAttribute{
 				Description: "The disable arp nd suppression of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
@@ -289,7 +289,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"rtimport": schema.StringAttribute{
 				Description: "The route target import of the zone",
 				Optional:    true,
-				Computed:    true,
+				//Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -486,34 +486,53 @@ func (r *proxmoxSDNZoneResource) Read(ctx context.Context, req resource.ReadRequ
 }
 
 func (r *proxmoxSDNZoneResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// プランからデータを取得
 	var plan zonesModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
-	if diags.HasError() {
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	zone, diagsConvert := convertZonesModeltoClientSDNZone(ctx, plan)
-	resp.Diagnostics.Append(diagsConvert...)
-	if diagsConvert.HasError() {
+	// 現在の状態を取得
+	var state zonesModel
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// プランからSDNZoneを生成
+	zone, diags := convertZonesModeltoClientSDNZone(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// SDNゾーンを更新
 	err := r.client.UpdateSDNZone(*zone)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to update SDN Zone", err.Error())
+		resp.Diagnostics.AddError(
+			"Error Updating SDN Zone",
+			fmt.Sprintf("Could not update SDN Zone %s: %s", zone.Zone, err.Error()),
+		)
 		return
 	}
 
+	// 更新されたゾーンを取得
 	updatedZone, err := r.client.GetSDNZone(zone.Zone)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to get SDN Zone", err.Error())
+		resp.Diagnostics.AddError(
+			"Error Reading SDN Zone",
+			fmt.Sprintf("Could not read SDN Zone %s: %s", zone.Zone, err.Error()),
+		)
 		return
 	}
 
-	updatedState, diagsState := convertSDNZoneToZonesModel(ctx, *updatedZone)
-	resp.Diagnostics.Append(diagsState...)
-	if diagsState.HasError() {
+	// 状態を更新
+	updatedState, diags := convertSDNZoneToZonesModel(ctx, *updatedZone)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
