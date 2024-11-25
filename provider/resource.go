@@ -204,7 +204,7 @@ func (r *proxmoxSDNZoneResource) Schema(_ context.Context, req resource.SchemaRe
 			"mac": schema.StringAttribute{
 				Description: "The MAC of the zone",
 				Optional:    true,
-				//Computed:    true,
+				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},

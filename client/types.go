@@ -18,19 +18,19 @@ type SDNZone struct {
 	Bridge *string `json:"bridge,omitempty"` // for VLAN, QinQ
 
 	Tag          *int64  `json:"tag,omitempty"`           // for QinQ
-	VLANProtocol *string `json:"vlan_protocol,omitempty"` // for QinQ
+	VLANProtocol *string `json:"vlan-protocol,omitempty"` // for QinQ
 
 	Peers []string `json:"peers,omitempty"` // for VXLAN
 
 	Controller              *string  `json:"controller,omitempty"`                 // for EVPN
-	VRFVXLAN                *int64   `json:"vrf_vxlan,omitempty"`                  // for EVPN
+	VRFVXLAN                *int64   `json:"vrf-vxlan,omitempty"`                  // for EVPN
 	MAC                     *string  `json:"mac,omitempty"`                        // for EVPN
 	ExitNodes               []string `json:"exitnodes,omitempty"`                  // for EVPN
-	PrimaryExitNode         *string  `json:"primary_exitnode,omitempty"`           // for EVPN
-	ExitNodesLocalRouting   *bool    `json:"exitnodes_local_routing,omitempty"`    // for EVPN
-	AdvertiseSubnets        *bool    `json:"advertise_subnets,omitempty"`          // for EVPN
-	DisableARPNdSuppression *bool    `json:"disable_arp_nd_suppression,omitempty"` // for EVPN
-	RouteTargetImport       *string  `json:"rt_import,omitempty"`                  // for EVPN
+	PrimaryExitNode         *string  `json:"exitnodes-primary,omitempty"`          // for EVPN
+	ExitNodesLocalRouting   *bool    `json:"exitnodes-local-routing,omitempty"`    // for EVPN
+	AdvertiseSubnets        *bool    `json:"advertise-subnets,omitempty"`          // for EVPN
+	DisableARPNdSuppression *bool    `json:"disable-arp-nd-suppression,omitempty"` // for EVPN
+	RouteTargetImport       *string  `json:"rt-import,omitempty"`                  // for EVPN
 }
 
 // []stringでJSONのマーシャライズをしたいが、Proxmoxは"hoge1, hoge2"のような形式で受け取るため、カスタムマーシャラーを作成

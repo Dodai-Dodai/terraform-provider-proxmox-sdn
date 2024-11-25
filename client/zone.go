@@ -72,7 +72,7 @@ func (c *SSHProxmoxClient) CreateSDNZone(zone SDNZone) error {
 		}
 
 		if zone.PrimaryExitNode != nil && *zone.PrimaryExitNode != "" {
-			command += fmt.Sprintf(" --primary-exitnode %s", *zone.PrimaryExitNode)
+			command += fmt.Sprintf(" --exitnodes-primary %s", *zone.PrimaryExitNode)
 		}
 
 		if zone.ExitNodesLocalRouting != nil {
