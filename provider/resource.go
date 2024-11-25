@@ -340,6 +340,15 @@ func (r *proxmoxSDNZoneResource) Create(ctx context.Context, req resource.Create
 
 }
 
+func BoolToIntBoolPointer(b types.Bool) *client.IntBool {
+	if b.IsNull() || b.IsUnknown() {
+		return nil
+	}
+	value := b.ValueBool()
+	intBoolValue := client.IntBool(value)
+	return &intBoolValue
+}
+
 func convertZonesModeltoClientSDNZone(ctx context.Context, model zonesModel) (*client.SDNZone, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -408,20 +417,9 @@ func convertZonesModeltoClientSDNZone(ctx context.Context, model zonesModel) (*c
 		zone.PrimaryExitNode = &primaryexitnode
 	}
 
-	if !model.ExitNodesLocalRouting.IsUnknown() && !model.ExitNodesLocalRouting.IsNull() {
-		exitnodeslocalrouting := model.ExitNodesLocalRouting.ValueBool()
-		zone.ExitNodesLocalRouting = &exitnodeslocalrouting
-	}
-
-	if !model.AdvertiseSubnets.IsUnknown() && !model.AdvertiseSubnets.IsNull() {
-		advertisesubnets := model.AdvertiseSubnets.ValueBool()
-		zone.AdvertiseSubnets = &advertisesubnets
-	}
-
-	if !model.DisableARPNdSuppression.IsUnknown() && !model.DisableARPNdSuppression.IsNull() {
-		disablearpndsuppression := model.DisableARPNdSuppression.ValueBool()
-		zone.DisableARPNdSuppression = &disablearpndsuppression
-	}
+	zone.ExitNodesLocalRouting = BoolToIntBoolPointer(model.ExitNodesLocalRouting)
+	zone.AdvertiseSubnets = BoolToIntBoolPointer(model.AdvertiseSubnets)
+	zone.DisableARPNdSuppression = BoolToIntBoolPointer(model.DisableARPNdSuppression)
 
 	if !model.RouteTargetImport.IsUnknown() && !model.RouteTargetImport.IsNull() {
 		rtimport := model.RouteTargetImport.ValueString()

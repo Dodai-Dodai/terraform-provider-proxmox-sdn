@@ -248,6 +248,14 @@ func (d *proxmoxSDNZoneDataSource) Configure(_ context.Context, req datasource.C
 	d.client = client
 }
 
+func IntBoolPointerToBoolPointer(b *client.IntBool) *bool {
+	if b == nil {
+		return nil
+	}
+	boolValue := bool(*b)
+	return &boolValue
+}
+
 func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zonesModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -272,6 +280,10 @@ func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zones
 	}
 	diags.Append(diagExitnodes...)
 
+	exitNodesLocalRouting := IntBoolPointerToBoolPointer(zone.ExitNodesLocalRouting)
+	advertiseSubnets := IntBoolPointerToBoolPointer(zone.AdvertiseSubnets)
+	disableARPNdSuppression := IntBoolPointerToBoolPointer(zone.DisableARPNdSuppression)
+
 	zoneModel := zonesModel{
 		Zone:                    types.StringValue(zone.Zone),
 		Type:                    types.StringValue(zone.Type),
@@ -290,9 +302,9 @@ func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zones
 		MAC:                     types.StringPointerValue(zone.MAC),
 		ExitNodes:               exitnodesset,
 		PrimaryExitNode:         types.StringPointerValue(zone.PrimaryExitNode),
-		ExitNodesLocalRouting:   types.BoolPointerValue(zone.ExitNodesLocalRouting),
-		AdvertiseSubnets:        types.BoolPointerValue(zone.AdvertiseSubnets),
-		DisableARPNdSuppression: types.BoolPointerValue(zone.DisableARPNdSuppression),
+		ExitNodesLocalRouting:   types.BoolPointerValue(exitNodesLocalRouting),
+		AdvertiseSubnets:        types.BoolPointerValue(advertiseSubnets),
+		DisableARPNdSuppression: types.BoolPointerValue(disableARPNdSuppression),
 		RouteTargetImport:       types.StringPointerValue(zone.RouteTargetImport),
 	}
 
