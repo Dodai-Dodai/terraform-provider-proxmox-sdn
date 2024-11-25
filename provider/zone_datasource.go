@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	client2 "github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/client"
+	"github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -20,7 +22,7 @@ func NewProxmoxSDNZoneDataSource() datasource.DataSource {
 }
 
 type proxmoxSDNZoneDataSource struct {
-	client *client2.SSHProxmoxClient
+	client *client.SSHProxmoxClient
 }
 
 func (d *proxmoxSDNZoneDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -29,120 +31,195 @@ func (d *proxmoxSDNZoneDataSource) Metadata(ctx context.Context, req datasource.
 
 func (d *proxmoxSDNZoneDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Proxmox SDN Zone Data Source",
 		Attributes: map[string]schema.Attribute{
 			"zones": schema.ListNestedAttribute{
-				Description: "The list of zones",
+				Description: "List of SDN zones",
 				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"zone": schema.StringAttribute{
-							Description: "The ID of the zone",
-							Computed:    true,
+							Description: "The name of the zone",
+							Required:    true,
 						},
 						"type": schema.StringAttribute{
 							Description: "The type of the zone",
+							Required:    true,
+						},
+						"mtu": schema.Int64Attribute{
+							Description: "The MTU Num of the Zone",
+							Optional:    true,
 							Computed:    true,
 						},
-						"dhcp": schema.StringAttribute{
-							Description: "The DHCP configuration of the zone",
-							Computed:    true,
-						},
-						"dns": schema.StringAttribute{
-							Description: "The DNS configuration of the zone",
-							Computed:    true,
-						},
-						"dns_zone": schema.StringAttribute{
-							Description: "The DNS zone of the zone",
-							Computed:    true,
-						},
-						"digest": schema.StringAttribute{
-							Description: "The digest of the zone",
+						"nodes": schema.SetAttribute{
+							Description: "Set of nodes in the zone",
+							ElementType: types.StringType,
+							Optional:    true,
 							Computed:    true,
 						},
 						"ipam": schema.StringAttribute{
-							Description: "The IPAM configuration of the zone",
+							Description: "The IPAM of the zone",
+							Optional:    true,
 							Computed:    true,
 						},
-						"mtu": schema.Int64Attribute{
-							Description: "The MTU of the zone",
+						"dns": schema.StringAttribute{
+							Description: "The DNS of the zone",
+							Optional:    true,
 							Computed:    true,
 						},
-						"nodes": schema.StringAttribute{
-							Description: "The nodes of the zone",
+						"reversedns": schema.StringAttribute{
+							Description: "The reverse dns of the zone",
+							Optional:    true,
 							Computed:    true,
 						},
-						"pending": schema.BoolAttribute{
-							Description: "The pending status of the zone",
+						"dnszone": schema.StringAttribute{
+							Description: "The DnsZone of the zone",
+							Optional:    true,
 							Computed:    true,
 						},
-						"reverse_dns": schema.StringAttribute{
-							Description: "The reverse DNS configuration of the zone",
-							Computed:    true,
-						},
-						"state": schema.StringAttribute{
-							Description: "The state of the zone",
-							Computed:    true,
-						},
-						"advertise_subnets": schema.BoolAttribute{
-							Description: "The advertise subnets configuration of the zone",
-							Computed:    true,
-						},
+
 						"bridge": schema.StringAttribute{
 							Description: "The bridge of the zone",
+							Optional:    true,
 							Computed:    true,
+							Validators: []validator.String{ //typeを確認するvalidatorを設定
+								BridgeValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
-						"bridge_disable_mac_learning": schema.BoolAttribute{
-							Description: "The bridge disable MAC learning configuration of the zone",
+
+						"tag": schema.Int64Attribute{
+							Description: "The tag of the zone",
+							Optional:    true,
 							Computed:    true,
+							Validators: []validator.Int64{
+								TagValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
+
+						"vlanprotocol": schema.StringAttribute{
+							Description: "The VLAN Protocol of the zone",
+							Optional:    true,
+							Computed:    true,
+							Validators: []validator.String{
+								VLANProtocolValidator{
+									TypeAttributeName: "type",
+								},
+							},
+						},
+
+						"peers": schema.SetAttribute{
+							Description: "Set of peers in the zone",
+							ElementType: types.StringType,
+							Optional:    true,
+							Computed:    true,
+							Validators: []validator.Set{
+								PeersValidator{
+									TypeAttributeName: "type",
+								},
+							},
+						},
+
 						"controller": schema.StringAttribute{
 							Description: "The controller of the zone",
+							Optional:    true,
 							Computed:    true,
+							Validators: []validator.String{
+								ControllerValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
-						"disable_arp_discovery": schema.BoolAttribute{
-							Description: "The disable ARP discovery configuration of the zone",
+
+						"vrf_vxlan": schema.Int64Attribute{
+							Description: "The VRFVXLAN of the zone",
+							Optional:    true,
 							Computed:    true,
+							Validators: []validator.Int64{
+								VrfvxlanValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
-						"dp_id": schema.Int64Attribute{
-							Description: "The DP ID of the zone",
-							Computed:    true,
-						},
-						"exit_nodes": schema.StringAttribute{
-							Description: "The exit nodes of the zone",
-							Computed:    true,
-						},
-						"exit_nodes_local_routing": schema.BoolAttribute{
-							Description: "The exit nodes local routing configuration of the zone",
-							Computed:    true,
-						},
+
 						"mac": schema.StringAttribute{
 							Description: "The MAC of the zone",
+							Optional:    true,
 							Computed:    true,
+							Validators: []validator.String{
+								MACValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
-						"peers": schema.StringAttribute{
-							Description: "The peers of the zone",
+
+						"exitnodes": schema.SetAttribute{
+							Description: "Set of exit nodes in the zone",
+							ElementType: types.StringType,
+							Optional:    true,
 							Computed:    true,
+							Validators: []validator.Set{
+								ExitNodesValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
-						"route_target_import": schema.StringAttribute{
+
+						"primaryexitnode": schema.StringAttribute{
+							Description: "The primary exit node of the zone",
+							Optional:    true,
+							Computed:    true,
+							Validators: []validator.String{
+								PrimaryExitNodeValidator{
+									TypeAttributeName: "type",
+								},
+							},
+						},
+
+						"exitnodeslocalrouting": schema.BoolAttribute{
+							Description: "The exit nodes local routing of the zone",
+							Optional:    true,
+							Computed:    true,
+							Validators: []validator.Bool{
+								ExitnodesLocalRoutingValidator{
+									TypeAttributeName: "type",
+								},
+							},
+						},
+
+						"advertisesubnets": schema.BoolAttribute{
+							Description: "The advertise subnets of the zone",
+							Optional:    true,
+							Computed:    true,
+							Validators: []validator.Bool{
+								AdvertiseSubnetsValidator{
+									TypeAttributeName: "type",
+								},
+							},
+						},
+
+						"disablearpndsuppression": schema.BoolAttribute{
+							Description: "The disable arp nd suppression of the zone",
+							Optional:    true,
+							Computed:    true,
+							Validators: []validator.Bool{
+								DisableARPNdSuppressionValidator{
+									TypeAttributeName: "type",
+								},
+							},
+						},
+
+						"rtimport": schema.StringAttribute{
 							Description: "The route target import of the zone",
+							Optional:    true,
 							Computed:    true,
-						},
-						// "tag": schema.Int64Attribute{
-						// 	Description: "The tag of the zone",
-						// 	Computed:    true,
-						// },
-						"vlan_protocol": schema.StringAttribute{
-							Description: "The VLAN protocol of the zone",
-							Computed:    true,
-						},
-						"vrf_vxlan": schema.Int64Attribute{
-							Description: "The VRF VXLAN of the zone",
-							Computed:    true,
-						},
-						"vxlan_port": schema.Int64Attribute{
-							Description: "The VXLAN port of the zone",
-							Computed:    true,
+							Validators: []validator.String{
+								RouteTargetImportValidator{
+									TypeAttributeName: "type",
+								},
+							},
 						},
 					},
 				},
@@ -156,128 +233,110 @@ func (d *proxmoxSDNZoneDataSource) Configure(_ context.Context, req datasource.C
 		return
 	}
 
-	client, ok := req.ProviderData.(*client2.SSHProxmoxClient)
+	client, ok := req.ProviderData.(*client.SSHProxmoxClient)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *client2.Client, got %T", req.ProviderData),
+			fmt.Sprintf("Expected *client.SSHProxmoxClient, got %T", req.ProviderData),
 		)
 		return
 	}
 	d.client = client
 }
 
-func convertSDNZoneToZonesModel(zone client2.SDNZone) zonesModel {
-	derefString := func(s *string) string {
-		if s == nil {
-			return ""
-		}
-		return *s
+func IntBoolPointerToBoolPointer(b *client.IntBool) *bool {
+	if b == nil {
+		return nil
 	}
-
-	derefInt := func(i *int64) int64 {
-		if i == nil {
-			return 0
-		}
-		return *i
-	}
-
-	derefBool := func(b *bool) bool {
-		if b == nil {
-			return false
-		}
-		return *b
-	}
-	zoneState := zonesModel{
-		Zone:                     types.StringValue(zone.Zone),
-		Type:                     types.StringValue(zone.Type),
-		DHCP:                     types.StringValue(derefString(zone.DHCP)),
-		DNS:                      types.StringValue(derefString(zone.DNS)),
-		DNSZone:                  types.StringValue(derefString(zone.DNSZone)),
-		Digest:                   types.StringValue(derefString(zone.Digest)),
-		IPAM:                     types.StringValue(derefString(zone.IPAM)),
-		MTU:                      types.Int64Value(int64(derefInt(zone.MTU))),
-		Nodes:                    types.StringValue(derefString(zone.Nodes)),
-		Pending:                  types.BoolValue(derefBool(zone.Pending)),
-		ReverseDNS:               types.StringValue(derefString(zone.ReverseDNS)),
-		State:                    types.StringValue(derefString(zone.State)),
-		AdvertiseSubnets:         types.BoolValue(derefBool(zone.AdvertiseSubnets)),
-		Bridge:                   types.StringValue(derefString(zone.Bridge)),
-		BridgeDisableMACLearning: types.BoolValue(derefBool(zone.BridgeDisableMACLearning)),
-		Controller:               types.StringValue(derefString(zone.Controller)),
-		DisableARPDiscovery:      types.BoolValue(derefBool(zone.DisableARPDiscovery)),
-		DPID:                     types.Int64Value(int64(derefInt(zone.DPID))),
-		ExitNodes:                types.StringValue(derefString(zone.ExitNodes)),
-		ExitNodesLocalRouting:    types.BoolValue(derefBool(zone.ExitNodesLocalRouting)),
-		MAC:                      types.StringValue(derefString(zone.MAC)),
-		Peers:                    types.StringValue(derefString(zone.Peers)),
-		RouteTargetImport:        types.StringValue(derefString(zone.RouteTargetImport)),
-		// Tag:                      types.Int64Null(),
-		VLANProtocol: types.StringValue(derefString(zone.VLANProtocol)),
-		VRFVXLAN:     types.Int64Value(int64(derefInt(zone.VRFVXLAN))),
-		VXLANPort:    types.Int64Value(int64(derefInt(zone.VXLANPort))),
-	}
-
-	// if zone.Tag != nil {
-	// 	zoneState.Tag = types.Int64Value(int64(*zone.Tag))
-	// }
-
-	return zoneState
+	boolValue := bool(*b)
+	return &boolValue
 }
 
-type proxmoxSDNZoneDataSourceModel struct {
-	Zones []zonesModel `tfsdk:"zones"`
-}
+func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zonesModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
-// proxmoxSDNZoneDataSourceModel maps the data source schema data.
-type zonesModel struct {
-	Zone                     types.String `tfsdk:"zone"`
-	Type                     types.String `tfsdk:"type"`
-	DHCP                     types.String `tfsdk:"dhcp"`
-	DNS                      types.String `tfsdk:"dns"`
-	DNSZone                  types.String `tfsdk:"dns_zone"`
-	Digest                   types.String `tfsdk:"digest"`
-	IPAM                     types.String `tfsdk:"ipam"`
-	MTU                      types.Int64  `tfsdk:"mtu"`
-	Nodes                    types.String `tfsdk:"nodes"`
-	Pending                  types.Bool   `tfsdk:"pending"`
-	ReverseDNS               types.String `tfsdk:"reverse_dns"`
-	State                    types.String `tfsdk:"state"`
-	AdvertiseSubnets         types.Bool   `tfsdk:"advertise_subnets"`
-	Bridge                   types.String `tfsdk:"bridge"`
-	BridgeDisableMACLearning types.Bool   `tfsdk:"bridge_disable_mac_learning"`
-	Controller               types.String `tfsdk:"controller"`
-	DisableARPDiscovery      types.Bool   `tfsdk:"disable_arp_discovery"`
-	DPID                     types.Int64  `tfsdk:"dp_id"`
-	ExitNodes                types.String `tfsdk:"exit_nodes"`
-	ExitNodesLocalRouting    types.Bool   `tfsdk:"exit_nodes_local_routing"`
-	MAC                      types.String `tfsdk:"mac"`
-	Peers                    types.String `tfsdk:"peers"`
-	RouteTargetImport        types.String `tfsdk:"route_target_import"`
-	// Tag                      types.Int64  `tfsdk:"tag"`
-	VLANProtocol types.String `tfsdk:"vlan_protocol"`
-	VRFVXLAN     types.Int64  `tfsdk:"vrf_vxlan"`
-	VXLANPort    types.Int64  `tfsdk:"vxlan_port"`
+	// set型に変換
+	nodeset, diagNodes := types.SetValueFrom(ctx, types.StringType, zone.Nodes)
+	if diagNodes.HasError() {
+		diags.Append(diagNodes...)
+		return zonesModel{}, diags
+	}
+	diags.Append(diagNodes...)
+
+	peersset, diagPeers := types.SetValueFrom(ctx, types.StringType, zone.Peers)
+	if diagPeers.HasError() {
+		diags.Append(diagPeers...)
+		return zonesModel{}, diags
+	}
+	diags.Append(diagPeers...)
+
+	exitnodesset, diagExitnodes := types.SetValueFrom(ctx, types.StringType, zone.ExitNodes)
+	if diagExitnodes.HasError() {
+		diags.Append(diagExitnodes...)
+		return zonesModel{}, diags
+	}
+	diags.Append(diagExitnodes...)
+
+	// bool型に変換
+	exitNodesLocalRouting := IntBoolPointerToBoolPointer(zone.ExitNodesLocalRouting)
+	advertiseSubnets := IntBoolPointerToBoolPointer(zone.AdvertiseSubnets)
+	disableARPNdSuppression := IntBoolPointerToBoolPointer(zone.DisableARPNdSuppression)
+
+	zoneModel := zonesModel{
+		Zone:                    types.StringValue(zone.Zone),
+		Type:                    types.StringValue(zone.Type),
+		MTU:                     types.Int64PointerValue(zone.MTU),
+		Nodes:                   nodeset,
+		IPAM:                    types.StringPointerValue(zone.IPAM),
+		DNS:                     types.StringPointerValue(zone.DNS),
+		ReverseDNS:              types.StringPointerValue(zone.ReverseDNS),
+		DNSZone:                 types.StringPointerValue(zone.DNSZone),
+		Bridge:                  types.StringPointerValue(zone.Bridge),
+		Tag:                     types.Int64PointerValue(zone.Tag),
+		VLANProtocol:            types.StringPointerValue(zone.VLANProtocol),
+		Peers:                   peersset,
+		Controller:              types.StringPointerValue(zone.Controller),
+		VRFVXLAN:                types.Int64PointerValue(zone.VRFVXLAN),
+		MAC:                     types.StringPointerValue(zone.MAC),
+		ExitNodes:               exitnodesset,
+		PrimaryExitNode:         types.StringPointerValue(zone.PrimaryExitNode),
+		ExitNodesLocalRouting:   types.BoolPointerValue(exitNodesLocalRouting),
+		AdvertiseSubnets:        types.BoolPointerValue(advertiseSubnets),
+		DisableARPNdSuppression: types.BoolPointerValue(disableARPNdSuppression),
+		RouteTargetImport:       types.StringPointerValue(zone.RouteTargetImport),
+	}
+
+	return zoneModel, diags
+
 }
 
 func (d *proxmoxSDNZoneDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var state proxmoxSDNZoneDataSourceModel
+	var state struct {
+		Zones []zonesModel `tfsdk:"zones"`
+	}
 
 	zones, err := d.client.GetSDNZones()
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to get zones", err.Error())
+		resp.Diagnostics.AddError("Error getting zones", err.Error())
 		return
 	}
+
+	var diags diag.Diagnostics
 
 	for _, zone := range zones {
-		zoneState := convertSDNZoneToZonesModel(zone)
-		state.Zones = append(state.Zones, zoneState)
+		zoneModel, diagZone := convertSDNZoneToZonesModel(ctx, zone)
+		if diagZone.HasError() {
+			resp.Diagnostics.Append(diagZone...)
+			continue
+		}
+		diags.Append(diagZone...)
+		state.Zones = append(state.Zones, zoneModel)
 	}
 
-	diags := resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
-
+	diags.Append(resp.State.Set(ctx, state)...)
+	resp.Diagnostics.Append(diags...)
 }

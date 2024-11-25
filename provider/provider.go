@@ -2,17 +2,18 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"os"
 
-	client2 "github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/client"
+	"github.com/Dodai-Dodai/terraform-provider-proxmox-sdn/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var (
@@ -156,9 +157,12 @@ func (p *ProxmoxSDNProvider) Configure(ctx context.Context, req provider.Configu
 		return
 	}
 
-	client, err := client2.NewSSHProxmoxClient(username, password, host)
+	client, err := client.NewSSHProxmoxClient(username, password, host)
 	if err != nil {
-		resp.Diagnostics.AddError("Failed to create client: %w", err.Error())
+		resp.Diagnostics.AddError(
+			"Failed to create client",
+			fmt.Sprintf("An error occurred while creating the client: %s", err.Error()),
+		)
 		return
 	}
 
