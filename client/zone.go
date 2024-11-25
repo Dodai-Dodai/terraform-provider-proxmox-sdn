@@ -109,6 +109,11 @@ func (c *SSHProxmoxClient) CreateSDNZone(zone SDNZone) error {
 	if err != nil {
 		return fmt.Errorf("failed to create SDN zone: %v", err)
 	}
+
+	// 変更を反映
+	if _, err = c.RunCommand("pvesh set /cluster/sdn"); err != nil {
+		return fmt.Errorf("failed to apply changes to SDN: %v", err)
+	}
 	return nil
 }
 
@@ -329,6 +334,11 @@ func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 	if err != nil {
 		return fmt.Errorf("failed to update SDN zone: %v", err)
 	}
+	// 変更を反映
+	if _, err = c.RunCommand("pvesh set /cluster/sdn"); err != nil {
+		return fmt.Errorf("failed to apply changes to SDN: %v", err)
+	}
+
 	return nil
 }
 
@@ -338,6 +348,11 @@ func (c *SSHProxmoxClient) DeleteSDNZone(zoneID string) error {
 	_, err := c.RunCommand(command)
 	if err != nil {
 		return fmt.Errorf("failed to delete SDN zone: %v", err)
+	}
+
+	// 変更を反映
+	if _, err = c.RunCommand("pvesh set /cluster/sdn"); err != nil {
+		return fmt.Errorf("failed to apply changes to SDN: %v", err)
 	}
 	return nil
 }
