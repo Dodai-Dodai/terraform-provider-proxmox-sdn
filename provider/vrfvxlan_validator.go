@@ -10,27 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure vrfvxlanValidator implements the Int64Validator interface
 var _ validator.Int64 = VrfvxlanValidator{}
 
-// vrfvxlanValidator is a custom validator for the 'vrfvxlan' attribute
 type VrfvxlanValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v VrfvxlanValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("Requires 'vrfvxlan' to be set when '%s' is 'evpn', otherwise 'vrfvxlan' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v VrfvxlanValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateInt64 performs the validation logic
 func (v VrfvxlanValidator) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
-	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
 	var typeAttr types.String
 
@@ -40,16 +34,14 @@ func (v VrfvxlanValidator) ValidateInt64(ctx context.Context, req validator.Int6
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
 
 	typeValue := typeAttr.ValueString()
 
-	// Check 'vrfvxlan' based on the value of 'type'
 	if typeValue == "evpn" {
-		// 'vrfvxlan' must be set
+		// 値は設定されている必要がある
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
@@ -59,7 +51,7 @@ func (v VrfvxlanValidator) ValidateInt64(ctx context.Context, req validator.Int6
 			return
 		}
 	} else {
-		// 'vrfvxlan' must not be set
+		// evpnでない場合、vrfvxlanは設定されていてはいけない
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

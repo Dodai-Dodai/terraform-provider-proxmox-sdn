@@ -10,25 +10,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure PeersValidator implements the Set interface
 var _ validator.Set = PeersValidator{}
 
-// PeersValidator is a custom validator for the 'peers' attribute
 type PeersValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v PeersValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("'peers' must be set when '%s' is 'vxlan', otherwise 'peers' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v PeersValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateSet performs the validation logic
 func (v PeersValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
 	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
@@ -40,7 +35,6 @@ func (v PeersValidator) ValidateSet(ctx context.Context, req validator.SetReques
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
@@ -48,7 +42,7 @@ func (v PeersValidator) ValidateSet(ctx context.Context, req validator.SetReques
 	typeValue := typeAttr.ValueString()
 
 	if typeValue == "vxlan" {
-		// 'peers' must be set and not empty
+		// peersは設定されている必要がある
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || len(req.ConfigValue.Elements()) == 0 {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
@@ -58,7 +52,7 @@ func (v PeersValidator) ValidateSet(ctx context.Context, req validator.SetReques
 			return
 		}
 	} else {
-		// 'peers' must not be set
+		// vxlanでない場合、peersは設定されていてはいけない
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() && len(req.ConfigValue.Elements()) != 0 {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

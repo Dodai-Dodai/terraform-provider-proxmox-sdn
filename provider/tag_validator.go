@@ -10,25 +10,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure TagValidator implements the Int64Validator interface
 var _ validator.Int64 = TagValidator{}
 
-// TagValidator is a custom validator for the 'tag' attribute
 type TagValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v TagValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("Requires 'tag' to be set when '%s' is 'qinq', otherwise 'tag' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v TagValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateInt64 performs the validation logic
 func (v TagValidator) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
 	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
@@ -40,16 +35,14 @@ func (v TagValidator) ValidateInt64(ctx context.Context, req validator.Int64Requ
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
 
 	typeValue := typeAttr.ValueString()
 
-	// Check 'tag' based on the value of 'type'
 	if typeValue == "qinq" {
-		// 'tag' must be set
+		// 'tag' は設定されている必要がある
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
@@ -59,7 +52,7 @@ func (v TagValidator) ValidateInt64(ctx context.Context, req validator.Int64Requ
 			return
 		}
 	} else {
-		// 'tag' must not be set
+		// 'tag' は設定されていてはいけない
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

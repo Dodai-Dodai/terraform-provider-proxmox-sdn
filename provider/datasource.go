@@ -81,8 +81,7 @@ func (d *proxmoxSDNZoneDataSource) Schema(ctx context.Context, req datasource.Sc
 							Description: "The bridge of the zone",
 							Optional:    true,
 							Computed:    true,
-							// PLANがVLANかQinQのとき必須にして、それ以外の場合は無効にするvalidatorを設定
-							Validators: []validator.String{
+							Validators: []validator.String{ //typeを確認するvalidatorを設定
 								BridgeValidator{
 									TypeAttributeName: "type",
 								},
@@ -93,7 +92,6 @@ func (d *proxmoxSDNZoneDataSource) Schema(ctx context.Context, req datasource.Sc
 							Description: "The tag of the zone",
 							Optional:    true,
 							Computed:    true,
-							// PLANがQinQのとき必須にして、それ以外の場合は無効にするvalidatorを設定
 							Validators: []validator.Int64{
 								TagValidator{
 									TypeAttributeName: "type",
@@ -105,7 +103,6 @@ func (d *proxmoxSDNZoneDataSource) Schema(ctx context.Context, req datasource.Sc
 							Description: "The VLAN Protocol of the zone",
 							Optional:    true,
 							Computed:    true,
-							// PLANがQinQかどうかを確認して、それ以外の場合は無効にするvalidatorを設定、加えて文字列が正しいかを確認
 							Validators: []validator.String{
 								VLANProtocolValidator{
 									TypeAttributeName: "type",
@@ -118,7 +115,6 @@ func (d *proxmoxSDNZoneDataSource) Schema(ctx context.Context, req datasource.Sc
 							ElementType: types.StringType,
 							Optional:    true,
 							Computed:    true,
-							// PLANがVXLANのとき必須にして、それ以外の場合は無効にするvalidatorを設定
 							Validators: []validator.Set{
 								PeersValidator{
 									TypeAttributeName: "type",
@@ -259,6 +255,7 @@ func IntBoolPointerToBoolPointer(b *client.IntBool) *bool {
 func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zonesModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	// set型に変換
 	nodeset, diagNodes := types.SetValueFrom(ctx, types.StringType, zone.Nodes)
 	if diagNodes.HasError() {
 		diags.Append(diagNodes...)
@@ -280,6 +277,7 @@ func convertSDNZoneToZonesModel(ctx context.Context, zone client.SDNZone) (zones
 	}
 	diags.Append(diagExitnodes...)
 
+	// bool型に変換
 	exitNodesLocalRouting := IntBoolPointerToBoolPointer(zone.ExitNodesLocalRouting)
 	advertiseSubnets := IntBoolPointerToBoolPointer(zone.AdvertiseSubnets)
 	disableARPNdSuppression := IntBoolPointerToBoolPointer(zone.DisableARPNdSuppression)

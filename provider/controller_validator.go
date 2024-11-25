@@ -10,27 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure ControllerValidator implements the StringValidator interface
 var _ validator.String = ControllerValidator{}
 
-// ControllerValidator is a custom validator for the 'Controller' attribute
 type ControllerValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v ControllerValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("Requires 'Controller' to be set when '%s' is 'vlan' or 'qinq', otherwise 'Controller' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v ControllerValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateString performs the validation logic
 func (v ControllerValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
 	var typeAttr types.String
 
@@ -40,16 +34,14 @@ func (v ControllerValidator) ValidateString(ctx context.Context, req validator.S
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
 
 	typeValue := typeAttr.ValueString()
 
-	// Check 'Controller' based on the value of 'type'
 	if typeValue == "evpn" {
-		// 'Controller' must be set
+		// 値が設定されなければならない
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
@@ -59,7 +51,7 @@ func (v ControllerValidator) ValidateString(ctx context.Context, req validator.S
 			return
 		}
 	} else {
-		// 'Controller' must not be set
+		// 値が設定されていてはいけない
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

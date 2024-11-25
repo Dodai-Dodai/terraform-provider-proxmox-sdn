@@ -10,27 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure VLANProtocolValidator implements the StringValidator interface
 var _ validator.String = VLANProtocolValidator{}
 
-// VLANProtocolValidator is a custom validator for the 'vlanprotocol' attribute
 type VLANProtocolValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v VLANProtocolValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("'vlanprotocol' must be '802.1ad' or '802.1q' when '%s' is 'qinq'; otherwise, 'vlanprotocol' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v VLANProtocolValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateString performs the validation logic
 func (v VLANProtocolValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
 	var typeAttr types.String
 
@@ -40,26 +34,24 @@ func (v VLANProtocolValidator) ValidateString(ctx context.Context, req validator
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
 
 	typeValue := typeAttr.ValueString()
 
-	// Allowed VLANProtocol values
+	// この値のみ許可される
 	allowedValues := []string{"802.1ad", "802.1q"}
 
 	if typeValue == "qinq" {
-		// 'vlanprotocol' can be set but must be one of the allowed values
+		// この値は設定されてなくてもいい
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-			// It's acceptable for 'vlanprotocol' to be null when 'type' is 'qinq'
 			return
 		}
 
 		vlanProtocolValue := req.ConfigValue.ValueString()
 
-		// Validate the value
+		// 値のチェック
 		isValid := false
 		for _, val := range allowedValues {
 			if vlanProtocolValue == val {
@@ -77,7 +69,7 @@ func (v VLANProtocolValidator) ValidateString(ctx context.Context, req validator
 			return
 		}
 	} else {
-		// 'vlanprotocol' must not be set
+		// qinqでない場合、vlanprotocolは設定されていてはいけない
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

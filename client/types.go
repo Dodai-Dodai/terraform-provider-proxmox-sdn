@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// proxmoxがboolをintで返すため、それに対応するための型
 type IntBool bool
 
 func (b *IntBool) UnmarshalJSON(data []byte) error {

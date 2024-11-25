@@ -10,27 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure BridgeValidator implements the StringValidator interface
 var _ validator.String = BridgeValidator{}
 
-// BridgeValidator is a custom validator for the 'bridge' attribute
 type BridgeValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v BridgeValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("Requires 'bridge' to be set when '%s' is 'vlan' or 'qinq', otherwise 'bridge' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v BridgeValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateString performs the validation logic
 func (v BridgeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
 	var typeAttr types.String
 
@@ -40,16 +34,14 @@ func (v BridgeValidator) ValidateString(ctx context.Context, req validator.Strin
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
 
 	typeValue := typeAttr.ValueString()
 
-	// Check 'bridge' based on the value of 'type'
 	if typeValue == "vlan" || typeValue == "qinq" {
-		// 'bridge' must be set
+		// 値が設定されなければならない
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
@@ -59,7 +51,7 @@ func (v BridgeValidator) ValidateString(ctx context.Context, req validator.Strin
 			return
 		}
 	} else {
-		// 'bridge' must not be set
+		// 値が設定されていてはいけない
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

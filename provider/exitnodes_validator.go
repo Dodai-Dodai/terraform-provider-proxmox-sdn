@@ -10,27 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure ExitNodesValidator implements the Set interface
 var _ validator.Set = ExitNodesValidator{}
 
-// ExitNodesValidator is a custom validator for the 'ExitNodes' attribute
 type ExitNodesValidator struct {
 	TypeAttributeName string
 }
 
-// Description returns a plain text description of the validator's behavior
 func (v ExitNodesValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("'ExitNodes' must be set when '%s' is 'evpn', otherwise 'ExitNodes' must be null", v.TypeAttributeName)
 }
 
-// MarkdownDescription returns a markdown description of the validator's behavior
 func (v ExitNodesValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// ValidateSet performs the validation logic
 func (v ExitNodesValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
-	// Get the value of the 'type' attribute
 	typeAttrPath := path.Root(v.TypeAttributeName)
 	var typeAttr types.String
 
@@ -40,7 +34,6 @@ func (v ExitNodesValidator) ValidateSet(ctx context.Context, req validator.SetRe
 		return
 	}
 
-	// If 'type' is unknown or null, we cannot proceed with validation
 	if typeAttr.IsUnknown() || typeAttr.IsNull() {
 		return
 	}
@@ -48,12 +41,12 @@ func (v ExitNodesValidator) ValidateSet(ctx context.Context, req validator.SetRe
 	typeValue := typeAttr.ValueString()
 
 	if typeValue == "evpn" {
-		// 'ExitNodes' must be set and not empty
+		// 値が設定されていなくてもいい
 		if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || len(req.ConfigValue.Elements()) == 0 {
 			return
 		}
 	} else {
-		// 'ExitNodes' must not be set
+		// 値が設定されていないこと
 		if !req.ConfigValue.IsNull() && !req.ConfigValue.IsUnknown() && len(req.ConfigValue.Elements()) != 0 {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,

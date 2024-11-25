@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// CreateSDNZone creates a new SDN zone in Proxmox.
+// SDNZoneを作成する関数
 func (c *SSHProxmoxClient) CreateSDNZone(zone SDNZone) error {
 	command := fmt.Sprintf(
 		"pvesh create /cluster/sdn/zones  --type %s --zone %s",
@@ -112,7 +112,7 @@ func (c *SSHProxmoxClient) CreateSDNZone(zone SDNZone) error {
 	return nil
 }
 
-// GetSDNZones retrieves the list of SDN zones from Proxmox.
+// SDNZoneを取得する関数
 func (c *SSHProxmoxClient) GetSDNZones() ([]SDNZone, error) {
 	// pvesh get /cluster/sdn/zones --output-format json
 	cmd := "pvesh get /cluster/sdn/zones --output-format json"
@@ -120,14 +120,13 @@ func (c *SSHProxmoxClient) GetSDNZones() ([]SDNZone, error) {
 	if err != nil {
 		return nil, err
 	}
-	//[{"digest":"6eeeb0e5517fe5ba4a3a86a6203dfe445c0929b5","nodes":"pvewata01,pvewata02","peers":"150.89.233.20,150.89.233.21","type":"vxlan","zone":"test2"}]
-	// 上記のようなJSON文字列をパースする
+
 	var zones []SDNZone
 	if err := json.Unmarshal([]byte(output), &zones); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 	// debug
-	fmt.Println(zones)
+	// fmt.Println(zones)
 	return zones, nil
 }
 
@@ -143,11 +142,11 @@ func (c *SSHProxmoxClient) GetSDNZone(zoneID string) (*SDNZone, error) {
 		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
 	}
 	// debug
-	fmt.Println(zone)
+	// fmt.Println(zone)
 	return &zone, nil
 }
 
-// UpdateSDNZone updates an existing SDN zone in Proxmox.
+// SDNZoneを更新する関数
 func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 	command := fmt.Sprintf(
 		"pvesh set /cluster/sdn/zones/%s",
@@ -333,7 +332,7 @@ func (c *SSHProxmoxClient) UpdateSDNZone(zone SDNZone) error {
 	return nil
 }
 
-// DeleteSDNZone deletes an existing SDN zone in Proxmox.
+// SDNZoneを削除する関数
 func (c *SSHProxmoxClient) DeleteSDNZone(zoneID string) error {
 	command := fmt.Sprintf("pvesh delete /cluster/sdn/zones/%s", zoneID)
 	_, err := c.RunCommand(command)
