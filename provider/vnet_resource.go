@@ -72,6 +72,13 @@ func (r *proxmoxSDNVnetResource) Schema(ctx context.Context, req resource.Schema
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"alias": schema.StringAttribute{
+				Description: "vnet alias",
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
 			"tag": schema.Int64Attribute{
 				Description: "vnet tag",
 				Optional:    true,
@@ -131,6 +138,11 @@ func convertVnetsModeltoClientVnet(ctx context.Context, model vnetsModel) (*clie
 	vnet.Vnet = model.Vnet.ValueString()
 	vnet.Zone = model.Zone.ValueString()
 	vnet.Type = model.Type.ValueString()
+
+	if !model.Alias.IsNull() && !model.Alias.IsUnknown() {
+		alias := model.Alias.ValueString()
+		vnet.Alias = &alias
+	}
 
 	if !model.Tag.IsNull() && !model.Tag.IsUnknown() {
 		tag := model.Tag.ValueInt64()

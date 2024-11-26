@@ -20,6 +20,10 @@ func (c *SSHProxmoxClient) CreateVnet(vnet SDNVnet) error {
 		command += fmt.Sprintf(" --tag %d", *vnet.Tag)
 	}
 
+	if vnet.Alias != nil && *vnet.Alias != "" {
+		command += fmt.Sprintf(" --alias %s", *vnet.Alias)
+	}
+
 	if vnet.Vlanaware != nil {
 		val := false
 		if *vnet.Vlanaware {
@@ -86,6 +90,10 @@ func (c *SSHProxmoxClient) UpdateVnet(vnet SDNVnet) error {
 
 	if vnet.Type != "" {
 		command += fmt.Sprintf(" --type %s", vnet.Type)
+	}
+
+	if vnet.Alias != nil && *vnet.Alias != "" {
+		command += fmt.Sprintf(" --alias %s", *vnet.Alias)
 	}
 
 	if vnet.Tag != nil && *vnet.Tag != 0 {

@@ -49,6 +49,10 @@ func (d *proxmoxSDNVnetDatasource) Schema(ctx context.Context, req datasource.Sc
 							Optional:    true,
 							Computed:    true,
 						},
+						"alias": schema.StringAttribute{
+							Description: "vnet alias",
+							Optional:    true,
+						},
 						"tag": schema.Int64Attribute{
 							Description: "vnet tag",
 							Optional:    true,
@@ -90,6 +94,7 @@ func convertSDNVnettoVnetsModel(ctx context.Context, vnet client.SDNVnet) (vnets
 		Vnet:      types.StringValue(vnet.Vnet),
 		Zone:      types.StringValue(vnet.Zone),
 		Type:      types.StringValue(vnet.Type),
+		Alias:     types.StringPointerValue(vnet.Alias),
 		Tag:       types.Int64PointerValue(vnet.Tag),
 		Vlanaware: types.BoolPointerValue(vlanaware),
 	}
