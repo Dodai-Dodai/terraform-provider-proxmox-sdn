@@ -175,11 +175,13 @@ func (p *ProxmoxSDNProvider) Configure(ctx context.Context, req provider.Configu
 func (p *ProxmoxSDNProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewProxmoxSDNZoneDataSource,
+		NewProxmoxSDNVnetDatasource,
 	}
 }
 
 func (p *ProxmoxSDNProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewProxmoxSDNZoneResource,
+		NewProxmoxSDNVnetResource,
 	}
 }
