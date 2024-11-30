@@ -9,6 +9,7 @@ type dhcpRangeModel struct {
 
 type subnetsModel struct {
 	Subnet        types.String     `tfsdk:"subnet"`          // required field
+	Cidr          types.String     `tfsdk:"cidr"`            // optional
 	Type          types.String     `tfsdk:"type"`            // required but always set 'subnet'
 	Vnet          types.String     `tfsdk:"vnet"`            // required field
 	DhcpDnsServer types.String     `tfsdk:"dhcp_dns_server"` // optional

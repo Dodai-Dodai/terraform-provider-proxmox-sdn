@@ -40,6 +40,11 @@ func (d *proxmoxSDNSubnetDatasource) Schema(ctx context.Context, req datasource.
 							Description: "subnet name",
 							Computed:    true,
 						},
+						"cidr": schema.StringAttribute{
+							Description: "cidr",
+							Optional:    true,
+							Computed:    true,
+						},
 						"type": schema.StringAttribute{
 							Description: "subnet type",
 							Optional:    true,
@@ -126,7 +131,7 @@ func convertSDNSubnetstoSubnetsModel(ctx context.Context, subnet client.SDNSubne
 	// boolとIntBoolの変換
 	snat := IntBoolPointerToBoolPointer(subnet.Snat)
 
-	// Convert []client.DhcpRange to []dhcpRangeModel
+	// DHCPRangeの変換
 	var dhcpRanges []dhcpRangeModel
 	for _, dr := range subnet.DhcpRange {
 		dhcpRange := dhcpRangeModel{
@@ -138,7 +143,8 @@ func convertSDNSubnetstoSubnetsModel(ctx context.Context, subnet client.SDNSubne
 
 	// SDNSubnetsをSubnetsModelに変換
 	subnets := subnetsModel{
-		Subnet:        types.StringValue(subnet.Subnet),
+		Subnet:        types.StringValue(subnet.Cidr),
+		Cidr:          types.StringValue(subnet.Cidr),
 		Type:          types.StringValue(subnet.Type),
 		Vnet:          types.StringValue(subnet.Vnet),
 		DhcpDnsServer: types.StringPointerValue(subnet.DhcpDnsServer),

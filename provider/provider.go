@@ -184,5 +184,6 @@ func (p *ProxmoxSDNProvider) Resources(_ context.Context) []func() resource.Reso
 	return []func() resource.Resource{
 		NewProxmoxSDNZoneResource,
 		NewProxmoxSDNVnetResource,
+		NewProxmoxSDNSubnetsResource,
 	}
 }

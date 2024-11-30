@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 )
 
 // Subnetを作成する関数
@@ -68,8 +69,9 @@ func (c *SSHProxmoxClient) GetSubnets(vnet string) ([]SDNSubnets, error) {
 }
 
 func (c *SSHProxmoxClient) GetSubnet(vnet string, zone string, subnetID string) (*SDNSubnets, error) {
-	// subnetIDのスラッシュを-に変換 subnetIDはIPアドレス/プレフィックス長の形式
-	subnetID = subnetID[:len(subnetID)-3] + "-" + subnetID[len(subnetID)-2:]
+	fmt.Println("GetSubnet", vnet, zone, subnetID) //出力:GetSubnet vnetnam 192.168.51.0/24
+	// subnetIDにスラッシュが含まれているかどうかを確認、含まれている場合はスラッシュを-に正規表現で変換
+	subnetID = strings.ReplaceAll(subnetID, "/", "-")
 
 	cmd := fmt.Sprintf("pvesh get /cluster/sdn/vnets/%s/subnets/%s-%s --output-format json", vnet, zone, subnetID)
 	output, err := c.RunCommand(cmd)
@@ -129,8 +131,8 @@ func (c *SSHProxmoxClient) UpdateSubnet(subnet SDNSubnets) error {
 }
 
 func (c *SSHProxmoxClient) DeleteSubnet(vnet string, zone string, subnetID string) error {
-	// subnetIDのスラッシュを-に変換 subnetIDはIPアドレス/プレフィックス長の形式
-	subnetID = subnetID[:len(subnetID)-3] + "-" + subnetID[len(subnetID)-2:]
+	// subnetIDにスラッシュが含まれているかどうかを確認、含まれている場合はスラッシュを-に変換
+	subnetID = strings.ReplaceAll(subnetID, "/", "-")
 	cmd := fmt.Sprintf("pvesh delete /cluster/sdn/vnets/%s/subnets/%s-%s", vnet, zone, subnetID)
 	_, err := c.RunCommand(cmd)
 	if err != nil {

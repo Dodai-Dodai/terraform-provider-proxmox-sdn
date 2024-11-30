@@ -7,6 +7,7 @@ type DhcpRange struct {
 
 type SDNSubnets struct {
 	Subnet        string      `json:"subnet"`                    // required field
+	Cidr          string      `json:"cidr,omitempty"`            // optional
 	Type          string      `json:"type"`                      // required but always set 'subnet'
 	Vnet          string      `json:"vnet"`                      // required field
 	DhcpDnsServer *string     `json:"dhcp-dns-server,omitempty"` // optional
