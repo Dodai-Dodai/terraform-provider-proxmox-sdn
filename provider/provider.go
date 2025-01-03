@@ -177,6 +177,7 @@ func (p *ProxmoxSDNProvider) DataSources(_ context.Context) []func() datasource.
 		NewProxmoxSDNZoneDataSource,
 		NewProxmoxSDNVnetDatasource,
 		NewProxmoxSDNSubnetsDatasource,
+		NewProxmoxSDNControllerDatasource,
 	}
 }
 
